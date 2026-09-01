@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/friday-banner.svg" alt="F.R.I.D.A.Y. personal AI command system" width="100%">
+  <img src="docs/assets/friday-banner.png" alt="F.R.I.D.A.Y. personal AI command system" width="100%">
 </p>
 
 # F.R.I.D.A.Y.
@@ -9,6 +9,26 @@ Qwen vision-language model with voice control, semantic memory, a browser HUD,
 local tools, procedural skills, and an optional Android companion. It runs
 offline by default and can optionally use OpenRouter with Hermes Portal
 failover for cloud reasoning.
+
+## Interface Showcase
+
+### Web HUD
+
+<p align="center">
+  <img src="docs/assets/web-hud.png" alt="F.R.I.D.A.Y. web HUD system overview" width="100%">
+</p>
+
+### Android Command Link
+
+<p align="center">
+  <img src="docs/assets/android-app.png" alt="F.R.I.D.A.Y. Android mobile command link" width="360">
+</p>
+
+### Official Logo
+
+<p align="center">
+  <img src="docs/assets/friday-logo.png" alt="F.R.I.D.A.Y. blue-flame face logo" width="220">
+</p>
 
 ## Highlights
 
