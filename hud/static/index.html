@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#071017" />
+<meta name="description" content="Friday Kit local assistant control surface" />
+<title>F.R.I.D.A.Y. HUD</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="icon" href="/static/icon-192.png" />
+<link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== TOP BAR ===== -->
+    <div id="topbar">
+      <div class="tb-left">
+        <div class="tb-logo"><img src="/static/icon-192.png" alt=""/></div>
+        <div class="tb-text">
+          <span class="tb-name">F.R.I.D.A.Y.</span>
+          <span class="tb-sub">ADVANCED RECURSIVE INTELLIGENCE SYSTEM</span>
+        </div>
+      </div>
+      <div class="tb-center">
+        <div class="tb-mode-switch" id="tbModeSwitch" role="group" aria-label="Reasoning mode">
+          <button type="button" class="tb-mode-btn active" data-mode="local" onclick="switchMode('local')">LOCAL</button>
+          <button type="button" class="tb-mode-btn" data-mode="openrouter" onclick="switchMode('openrouter')">OPENROUTER</button>
+        </div>
+      </div>
+      <div class="tb-right">
+        <div class="tb-data">
+          <span class="td-item"><span class="td-lbl">STATE</span><span class="td-val" id="tbState">STANDBY</span></span>
+          <span class="td-sep"></span>
+          <span class="td-item"><span class="td-lbl">MIC</span><span class="td-val" id="tbMic">--</span></span>
+          <span class="td-sep"></span>
+          <span class="td-item"><span class="td-lbl">FACTS</span><span class="td-val" id="tbFacts">0</span></span>
+        </div>
+        <span class="tb-tag" id="tbMode">MODE CHECKING</span>
+      </div>
+    </div>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div id="main">
+      <!-- Sidebar -->
+      <div id="sidebar">
+        <div class="sb-profile">
+          <div class="sb-avatar"><img src="/static/icon-192.png" alt="FRIDAY"/></div>
+          <div class="sb-info">
+            <div class="sb-name">FRIDAY</div>
+            <div class="sb-status" id="fridayStatus">IDLE</div>
+          </div>
+        </div>
+
+        <nav class="sb-nav">
+          <button class="sb-btn active" data-panel="dashboard" onclick="switchPanel('dashboard')">
+            <span class="sb-icon">&#9670;</span><span>DASHBOARD</span>
+          </button>
+          <button class="sb-btn" data-panel="chat" onclick="switchPanel('chat')">
+            <span class="sb-icon">&#9672;</span><span>COMM</span>
+          </button>
+          <button class="sb-btn" data-panel="memory" onclick="switchPanel('memory')">
+            <span class="sb-icon">&#9830;</span><span>MEMORY</span>
+          </button>
+          <button class="sb-btn" data-panel="settings" onclick="switchPanel('settings')">
+            <span class="sb-icon">&#9881;</span><span>SETTINGS</span>
+          </button>
+        </nav>
+
+        <div class="sb-devices">
+          <div class="sb-dev-title">DEVICES</div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#128187;</span>
+            <span class="sb-dev-name">AI ENGINE</span>
+            <span class="sb-dev-status" id="aiStatus"><i class="dot off"></i>CHECKING</span>
+          </div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#127908;</span>
+            <span class="sb-dev-name">VOICE</span>
+            <span class="sb-dev-status" id="devMicStatus"><i class="dot off"></i>MUTED</span>
+          </div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#128274;</span>
+            <span class="sb-dev-name">GUARDIAN</span>
+            <span class="sb-dev-status" id="guardianStatus"><i class="dot off"></i>AWAITING</span>
+          </div>
+        </div>
+
+        <div class="sb-footer">
+          <div class="sb-stat"><span class="ss-lbl">LINK</span><span class="ss-val" id="linkVal">--</span></div>
+          <div class="sb-stat"><span class="ss-lbl">HEARD</span><span class="ss-val" id="heardVal">--</span></div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div id="content">
+        <!-- ============ DASHBOARD ============ -->
+         <div class="panel active" id="panel-dashboard">
+           <div class="dash">
+             <header class="panel-heading"><span>OPERATIONS</span><h1>System overview</h1><p>Live state is shown only after the backend reports it.</p></header>
+            <div class="dash-gauges">
+              <div class="gauge-card large">
+                <div class="gc-header"><span class="gc-title">AI ENGINE</span><span class="gc-sub" id="dashModel">DETECTING</span></div>
+                <div class="gc-center">
+                  <div class="dash-orb" id="dashOrb"></div>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">STATE</span><span class="gcs-val" id="dashState">STANDBY</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">LINK</span><span class="gcs-val" id="dashEngineLink">CHECKING</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">MODEL</span><span class="gcs-val" id="dashModelShort">--</span></div>
+                </div>
+              </div>
+              <div class="gauge-card large">
+                <div class="gc-header"><span class="gc-title">MEMORY</span><span class="gc-sub">SQLite + MiniLM</span></div>
+                <div class="gc-center">
+                  <div class="dash-mem">
+                    <div class="dash-mem-num" id="dashFacts">0</div>
+                    <div class="dash-mem-lbl">FACTS RECALLED</div>
+                  </div>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">EPISODES</span><span class="gcs-val" id="dashEpisodes">0</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">ENGINE</span><span class="gcs-val">Semantic</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">MODE</span><span class="gcs-val" id="dashMode">--</span></div>
+                </div>
+              </div>
+              <div class="gauge-card large">
+                <div class="gc-header"><span class="gc-title">GUARDIAN</span><span class="gc-sub">SYSTEM WATCH</span></div>
+                <div class="gc-center">
+                  <div class="dash-shield">&#128737;&#65039;</div>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">CPU</span><span class="gcs-val">&gt;85%</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">RAM</span><span class="gcs-val">&gt;90%</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">GPU</span><span class="gcs-val">&gt;85&deg;C</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="dash-info">
+              <div class="info-card">
+                <div class="ic-header"><span class="ic-icon">&#128218;</span><span class="ic-title">PERSONALITY</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Name</span><span class="icr"></span><span class="icv">F.R.I.D.A.Y.</span></div>
+                  <div class="ic-row"><span class="icl">Voice</span><span class="icr"></span><span class="icv">Configured locally</span></div>
+                  <div class="ic-row"><span class="icl">Memory</span><span class="icr"></span><span class="icv">Local SQLite</span></div>
+                  <div class="ic-row"><span class="icl">Wake Word</span><span class="icr"></span><span class="icv" id="dashWake">friday</span></div>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="ic-header"><span class="ic-icon">&#128246;</span><span class="ic-title">LINK</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Server</span><span class="icr"></span><span class="icv" id="dashServer">--</span></div>
+                  <div class="ic-row"><span class="icl">Socket</span><span class="icr"></span><span class="icv" id="dashSocket">--</span></div>
+                  <div class="ic-row"><span class="icl">Mode</span><span class="icr"></span><span class="icv" id="dashReasoning">--</span></div>
+                  <div class="ic-row"><span class="icl">Model</span><span class="icr"></span><span class="icv" id="dashModelName">--</span></div>
+                </div>
+              </div>
+              <div class="info-card">
+                <div class="ic-header"><span class="ic-icon">&#9889;</span><span class="ic-title">ACTIONS</span></div>
+                <div class="ic-body actions-grid">
+                  <button class="action-btn" onclick="switchPanel('chat')"><span class="ab-icon">&#9672;</span><span class="ab-text">OPEN COMM</span></button>
+                  <button class="action-btn" onclick="switchPanel('memory'); "><span class="ab-icon">&#9830;</span><span class="ab-text">MEMORY</span></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ CHAT (IDE WORKSPACE) ============ -->
+        <div class="panel" id="panel-chat" aria-labelledby="chatHeading">
+          <div class="chat-wrap">
+            <div class="chat-top">
+              <div class="ct-left">
+                <div class="ct-avatar"><img src="/static/icon-192.png" alt=""/></div>
+                <div><h1 class="ct-title" id="chatHeading">COMM LINK</h1><div class="ct-sub">SECURE ASSISTANT CHANNEL</div></div>
+              </div>
+              <div class="ct-right">
+                <span class="ct-dot" id="chatStatusDot"></span>
+                <span class="ct-status" id="chatStatusText">CONNECTING...</span>
+                <button class="ct-btn" id="workshopToggle" title="Open / close WORKSHOP panel">&#128204;</button>
+                <button class="ct-btn" id="micBtn" title="Toggle microphone">&#127908;</button>
+                <button class="ct-btn" id="stopBtn" title="Stop current reply">&#9632;</button>
+              </div>
+            </div>
+            <div class="chat-workspace">
+              <div class="chat-body">
+                 <div id="chatLog" role="log" aria-live="polite" aria-relevant="additions text">
+                   <div class="bubble fri">Interface ready. Connection status is shown above.</div>
+                </div>
+                <form id="inputBar">
+                  <div id="attachRow" class="attach-row"></div>
+                  <div class="input-row">
+                     <label class="sr-only" for="textInput">Message Friday</label>
+                     <textarea id="textInput" rows="1" autocomplete="off" placeholder="Message Friday (Enter to send, Shift+Enter for a new line)"></textarea>
+                     <button type="button" id="attachBtn" class="ib-btn" title="Attach file" aria-label="Attach file">&#128206;</button>
+                    <button id="sendBtn" type="submit">SEND</button>
+                  </div>
+                  <input type="file" id="fileInput" multiple accept="image/*,.txt,.md,.csv,.json,.log,.py,.js,.html,.pdf" hidden />
+                </form>
+                <div id="feedbackBar">
+                  <span class="fb-note">Was this helpful?</span>
+                  <button id="thumbUp" class="feedback-btn" title="Helpful">&#128077;</button>
+                  <button id="thumbDown" class="feedback-btn" title="Not helpful">&#128078;</button>
+                </div>
+              </div>
+
+              <!-- ===== IDE SIDE PANEL ===== -->
+              <aside id="idePanel" class="ide-collapsed" aria-hidden="true">
+                <div class="ide-head">
+                  <span class="ide-title">&#x1F4CC; WORKSHOP</span>
+                  <div class="ide-tabs" id="ideTabs">
+                    <button class="ide-tab active" data-tab="reason">REASON</button>
+                    <button class="ide-tab" data-tab="todos">TASKS</button>
+                    <button class="ide-tab" data-tab="tools">TOOLS</button>
+                    <button class="ide-tab" data-tab="diff">DIFF</button>
+                  </div>
+                  <button class="ide-collapse-btn" id="ideCollapse" title="Open / close WORKSHOP panel">&#8250;</button>
+                </div>
+
+                <div class="ide-body">
+                  <!-- REASONING -->
+                  <div class="ide-pane active" id="ideReason" data-pane="reason">
+                    <div class="ide-intro">Agent reasoning will appear here.</div>
+                    <div class="reason-steps" id="reasonSteps"></div>
+                  </div>
+                  <!-- TODOS -->
+                  <div class="ide-pane" id="ideTodos" data-pane="todos">
+                    <div class="ide-intro">Task checklist will appear here.</div>
+                    <div class="todo-list" id="todoList"></div>
+                  </div>
+                  <!-- TOOLS -->
+                  <div class="ide-pane" id="ideTools" data-pane="tools">
+                    <div class="ide-intro">Tool executions will appear here.</div>
+                    <div class="tool-list" id="toolList"></div>
+                  </div>
+                  <!-- DIFF -->
+                  <div class="ide-pane" id="ideDiff" data-pane="diff">
+                    <div class="ide-intro">File changes will appear here.</div>
+                    <div class="diff-stack" id="diffStack"></div>
+                  </div>
+                </div>
+
+                <div class="ide-foot">
+                  <span class="ide-agent-status" id="ideAgentStatus">IDLE</span>
+                  <button class="ide-reset" id="ideReset" title="Clear agent session">CLEAR</button>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ MEMORY ============ -->
+        <div class="panel" id="panel-memory">
+          <div class="panel-scroll">
+            <div class="mem-warn"><span>&#9888;</span> SECRETS NEVER RETAINED.</div>
+            <div class="mem-list" id="memoryList"><div class="mem-empty">// NO FACTS STORED.</div></div>
+          </div>
+        </div>
+
+        <!-- ============ SETTINGS ============ -->
+        <div class="panel" id="panel-settings">
+          <div class="panel-scroll">
+            <header class="panel-heading"><span>CONFIGURATION</span><h1>Settings</h1><p>Control how Friday asks for permission before acting.</p></header>
+            <div class="settings-card">
+              <div class="setting-row">
+                <div class="setting-text">
+                  <div class="setting-title">Auto-accept permissions</div>
+                  <div class="setting-desc">Tool requests will be automatically approved without the confirmation popup. When off, Friday shows a popup warning each time it requests access.</div>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="autoAcceptToggle" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div class="setting-row setting-block">
+                <div class="setting-title">FINE-TUNING (UNSLOTH)</div>
+                <div class="setting-desc">Teach Friday with your own conversation memory using fast Unsloth QLoRA. First run downloads the base model from Hugging Face; the machine needs <code>pip install unsloth</code>. Data and adapters are stored under <code>models/finetune/</code>.</div>
+                <div class="ft-grid">
+                  <label class="ft-field"><span>BASE MODEL</span>
+                    <select id="ftModel">
+                      <option value="unsloth/Qwen2.5-3B-Instruct">Qwen2.5 3B Instruct</option>
+                      <option value="unsloth/Qwen2.5-7B-Instruct">Qwen2.5 7B Instruct</option>
+                      <option value="unsloth/Llama-3.2-3B-Instruct">Llama 3.2 3B Instruct</option>
+                      <option value="unsloth/Phi-4-mini-instruct">Phi-4 mini Instruct</option>
+                    </select>
+                  </label>
+                  <label class="ft-field"><span>LORA RANK (R)</span><input id="ftRank" type="number" min="1" max="128" value="16" /></label>
+                  <label class="ft-field"><span>LORA ALPHA</span><input id="ftAlpha" type="number" min="1" max="256" value="16" /></label>
+                  <label class="ft-field"><span>EPOCHS</span><input id="ftEpochs" type="number" min="1" max="10" value="1" /></label>
+                  <label class="ft-field"><span>LEARNING RATE</span><input id="ftLr" type="number" step="0.00001" min="0.000001" max="0.01" value="0.0002" /></label>
+                  <label class="ft-field"><span>BATCH SIZE</span><input id="ftBatch" type="number" min="1" max="16" value="2" /></label>
+                  <label class="ft-field"><span>MAX SEQ LENGTH</span><input id="ftSeq" type="number" min="512" max="8192" step="512" value="2048" /></label>
+                  <label class="ft-field"><span>MAX PAIRS</span><input id="ftPairs" type="number" min="10" max="20000" value="2000" /></label>
+                </div>
+                <div class="ft-actions">
+                  <button id="ftStart" class="approve-btn">START TRAINING</button>
+                  <button id="ftStop" class="deny-btn">STOP</button>
+                  <button id="ftApply" class="approve-btn" disabled title="Hot-swap the fine-tuned GGUF as Friday's brain">APPLY TO BRAIN</button>
+                </div>
+                <div class="ft-status" id="ftStatus" data-state="idle">IDLE</div>
+                <div class="ft-bar"><div class="ft-bar-fill" id="ftBar"></div></div>
+              </div>
+            </div>
+
+            <div class="settings-card">
+              <div class="setting-row setting-block">
+                <div class="setting-title">SESSION LOCK (PIN)</div>
+                <div class="setting-desc">Require a 4-8 digit PIN before settings can be changed from phone clients on your Wi-Fi. Your PC itself stays trusted. Starting a fine-tune always passes through the confirmation popup.</div>
+                <div class="ft-grid">
+                  <label class="ft-field"><span>CURRENT PIN (IF SET)</span><input id="pinCurrent" type="password" inputmode="numeric" maxlength="8" placeholder="----" /></label>
+                  <label class="ft-field"><span>NEW PIN (4-8 DIGITS)</span><input id="pinNew" type="password" inputmode="numeric" maxlength="8" placeholder="****" /></label>
+                </div>
+                <div class="ft-actions">
+                  <button id="pinSave" class="approve-btn">SAVE PIN</button>
+                  <button id="pinClear" class="deny-btn">CLEAR PIN</button>
+                </div>
+                <div class="ft-status" id="pinStatus" data-state="idle">PIN: NOT SET</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div id="bottombar">
+      <div class="bb-left">
+        <span class="bb-item">SYS: <span id="bbSys">CHECKING</span></span>
+        <span class="bb-sep">|</span>
+        <span class="bb-item">CORE: <span id="bbCore">STANDBY</span></span>
+      </div>
+      <div class="bb-center">
+        <span class="bb-item" id="heard"></span>
+      </div>
+      <div class="bb-right">
+        <span class="bb-item" id="tbTime">00:00:00</span>
+        <span class="bb-sep">|</span>
+        <span class="bb-item" id="tbDate">----.--.--</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guardian Alert -->
+  <div id="guardianAlert" class="ga" aria-hidden="true">
+    <div class="ga-inner">
+      <div class="ga-title">&#9888; SYSTEM GUARDIAN</div>
+      <div class="ga-msg" id="guardianMessage"></div>
+    </div>
+    <button class="ga-close" id="guardianDismiss">&#10005;</button>
+  </div>
+
+  <!-- Vision Warning -->
+  <div id="visionWarning" class="vw" aria-hidden="true">
+    <span class="vw-dot"></span>
+    <span>VISION ACTIVE</span>
+    <span class="vw-sub">Analyzing visual input</span>
+  </div>
+
+  <!-- Confirmation -->
+  <div id="confirmationPanel" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="confirmationTitle" aria-describedby="confirmationDescription">
+    <div class="confirmation-card" tabindex="-1">
+      <div class="confirmation-kicker">CONFIRM ACTION</div>
+      <h2 id="confirmationTitle">Action requested</h2>
+      <pre id="confirmationDescription"></pre>
+      <div class="confirmation-actions">
+        <button id="denyBtn" class="deny-btn">DENY</button>
+        <button id="approveBtn" class="approve-btn">APPROVE</button>
+      </div>
+      <small id="confirmationExpiry">Expires in 60 seconds.</small>
+    </div>
+  </div>
+
+  <div id="confirmationPanelBackdrop" class="cp-backdrop"></div>
+
+  <nav class="mobile-nav" aria-label="Primary navigation">
+    <button class="mobile-nav-btn active" data-panel="dashboard" onclick="switchPanel('dashboard')"><span aria-hidden="true">&#9670;</span>DASH</button>
+    <button class="mobile-nav-btn" data-panel="chat" onclick="switchPanel('chat')"><span aria-hidden="true">&#9672;</span>COMM</button>
+    <button class="mobile-nav-btn" data-panel="memory" onclick="switchPanel('memory')"><span aria-hidden="true">&#9830;</span>MEMORY</button>
+    <button class="mobile-nav-btn" data-panel="settings" onclick="switchPanel('settings')"><span aria-hidden="true">&#9881;</span>SET</button>
+  </nav>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

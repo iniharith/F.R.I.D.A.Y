@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src ws://127.0.0.1:* http://127.0.0.1:*;" />
+<title>F.R.I.D.A.Y. HUD</title>
+<link rel="stylesheet" href="styles/hud.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ===== TOP BAR ===== -->
+    <div id="topbar">
+      <div class="tb-left">
+        <div class="tb-logo"><img src="assets/friday-logo.png" alt=""/></div>
+        <div class="tb-text">
+          <span class="tb-name">F.R.I.D.A.Y.</span>
+          <span class="tb-sub">ADVANCED RECURSIVE INTELLIGENCE SYSTEM</span>
+        </div>
+      </div>
+      <div class="tb-center">
+        <div class="tb-mode-switch" id="tbModeSwitch" role="group" aria-label="Reasoning mode">
+          <button type="button" class="tb-mode-btn active" data-mode="local" onclick="switchMode('local')">LOCAL</button>
+          <button type="button" class="tb-mode-btn" data-mode="openrouter" onclick="switchMode('openrouter')">OPENROUTER</button>
+        </div>
+      </div>
+      <div class="tb-right">
+        <div class="tb-data">
+          <span class="td-item"><span class="td-lbl">CPU</span><span class="td-val" id="tbCpu">--</span></span>
+          <span class="td-sep"></span>
+          <span class="td-item"><span class="td-lbl">GPU</span><span class="td-val" id="tbGpu">--</span></span>
+          <span class="td-sep"></span>
+          <span class="td-item"><span class="td-lbl">MEM</span><span class="td-val" id="tbMem">--</span></span>
+        </div>
+        <span class="tb-tag">INI HARITH</span>
+        <div class="tb-controls">
+          <button class="tb-btn" onclick="send('window-minimize')" aria-label="Minimize window">&#9472;</button>
+          <button class="tb-btn" onclick="send('window-maximize')" aria-label="Maximize or restore window">&#9723;</button>
+          <button class="tb-btn close" onclick="send('window-close')" aria-label="Close window">&#10005;</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MAIN LAYOUT ===== -->
+    <div id="main">
+      <!-- Sidebar -->
+      <div id="sidebar">
+        <div class="sb-profile">
+          <div class="sb-avatar">
+            <img src="assets/friday-logo.png" alt="FRIDAY"/>
+          </div>
+          <div class="sb-info">
+            <div class="sb-name">FRIDAY</div>
+            <div class="sb-status" id="fridayStatus">IDLE</div>
+          </div>
+        </div>
+
+        <nav class="sb-nav">
+          <button class="sb-btn active" data-panel="dashboard" onclick="switchPanel('dashboard')">
+            <span class="sb-icon">&#9670;</span><span>DASHBOARD</span>
+          </button>
+          <button class="sb-btn" data-panel="chat" onclick="switchPanel('chat')">
+            <span class="sb-icon">&#9672;</span><span>COMM</span>
+          </button>
+          <button class="sb-btn" data-panel="settings" onclick="switchPanel('settings')">
+            <span class="sb-icon">&#9881;</span><span>CONFIG</span>
+          </button>
+          <button class="sb-btn" data-panel="logs" onclick="switchPanel('logs')">
+            <span class="sb-icon">&#9635;</span><span>DIAG</span>
+          </button>
+          <button class="sb-btn" data-panel="memory" onclick="switchPanel('memory')">
+            <span class="sb-icon">&#9830;</span><span>MEMORY</span>
+          </button>
+        </nav>
+
+        <div class="sb-devices">
+          <div class="sb-dev-title">DEVICES</div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#128187;</span>
+            <span class="sb-dev-name">AI ENGINE</span>
+            <span class="sb-dev-status" id="aiStatus"><i class="dot off"></i>OFFLINE</span>
+          </div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#127908;</span>
+            <span class="sb-dev-name">VOICE</span>
+            <span class="sb-dev-status" id="micStatus"><i class="dot off"></i>MUTED</span>
+          </div>
+          <div class="sb-dev">
+            <span class="sb-dev-icon">&#128274;</span>
+            <span class="sb-dev-name">GUARDIAN</span>
+            <span class="sb-dev-status" id="guardianStatus"><i class="dot off"></i>AWAITING</span>
+          </div>
+        </div>
+
+        <div class="sb-footer">
+          <div class="sb-stat"><span class="ss-lbl">UPTIME</span><span class="ss-val" id="uptimeVal">--</span></div>
+          <div class="sb-stat"><span class="ss-lbl">SESSION</span><span class="ss-val" id="sessionVal">001</span></div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div id="content">
+        <!-- ============ DASHBOARD ============ -->
+         <div class="panel active" id="panel-dashboard">
+           <div class="dash">
+             <header class="panel-heading"><span>OPERATIONS</span><h1>System overview</h1><p>Hardware and service telemetry from this machine.</p></header>
+            <!-- Main Gauges -->
+            <div class="dash-gauges">
+              <!-- CPU Gauge -->
+              <div class="gauge-card large">
+                <div class="gc-header">
+                  <span class="gc-title">CPU</span>
+                  <span class="gc-sub" id="cpuLabel">DETECTING</span>
+                </div>
+                <div class="gc-gauge">
+                  <svg viewBox="0 0 200 200">
+                    <defs>
+                      <linearGradient id="cpuGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ff4444;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#ff8800;stop-opacity:1" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,68,68,0.1)" stroke-width="6"/>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="url(#cpuGrad)" stroke-width="6" stroke-dasharray="534" stroke-dashoffset="534" stroke-linecap="round" transform="rotate(-90 100 100)" class="gauge-arc" data-type="cpu"/>
+                    <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,68,68,0.05)" stroke-width="1"/>
+                    <text x="100" y="95" text-anchor="middle" class="gauge-val" id="cpuVal">--</text>
+                    <text x="100" y="115" text-anchor="middle" class="gauge-sub" id="cpuTemp">--°C</text>
+                  </svg>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">CLOCK</span><span class="gcs-val" id="cpuClock">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">CORES</span><span class="gcs-val" id="cpuCores">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">POWER</span><span class="gcs-val" id="cpuPower">--</span></div>
+                </div>
+              </div>
+
+              <!-- GPU Gauge -->
+              <div class="gauge-card large">
+                <div class="gc-header">
+                  <span class="gc-title">GPU</span>
+                  <span class="gc-sub" id="gpuLabel">NOT REPORTED</span>
+                </div>
+                <div class="gc-gauge">
+                  <svg viewBox="0 0 200 200">
+                    <defs>
+                      <linearGradient id="gpuGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#00cc66;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#00ff88;stop-opacity:1" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(0,204,102,0.1)" stroke-width="6"/>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="url(#gpuGrad)" stroke-width="6" stroke-dasharray="534" stroke-dashoffset="534" stroke-linecap="round" transform="rotate(-90 100 100)" class="gauge-arc" data-type="gpu"/>
+                    <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(0,204,102,0.05)" stroke-width="1"/>
+                    <text x="100" y="95" text-anchor="middle" class="gauge-val" id="gpuVal">--</text>
+                    <text x="100" y="115" text-anchor="middle" class="gauge-sub" id="gpuTemp">--°C</text>
+                  </svg>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">CLOCK</span><span class="gcs-val" id="gpuClock">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">VRAM</span><span class="gcs-val">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">POWER</span><span class="gcs-val" id="gpuPower">--</span></div>
+                </div>
+              </div>
+
+              <!-- RAM Gauge -->
+              <div class="gauge-card large">
+                <div class="gc-header">
+                  <span class="gc-title">MEMORY</span>
+                  <span class="gc-sub" id="ramLabel">SYSTEM MEMORY</span>
+                </div>
+                <div class="gc-gauge">
+                  <svg viewBox="0 0 200 200">
+                    <defs>
+                      <linearGradient id="memGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ffaa00;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#ffcc00;stop-opacity:1" />
+                      </linearGradient>
+                    </defs>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,170,0,0.1)" stroke-width="6"/>
+                    <circle cx="100" cy="100" r="85" fill="none" stroke="url(#memGrad)" stroke-width="6" stroke-dasharray="534" stroke-dashoffset="534" stroke-linecap="round" transform="rotate(-90 100 100)" class="gauge-arc" data-type="ram"/>
+                    <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(255,170,0,0.05)" stroke-width="1"/>
+                    <text x="100" y="95" text-anchor="middle" class="gauge-val" id="ramVal">--</text>
+                    <text x="100" y="115" text-anchor="middle" class="gauge-sub" id="ramUsed">--GB / --GB</text>
+                  </svg>
+                </div>
+                <div class="gc-stats">
+                  <div class="gc-stat"><span class="gcs-lbl">USED</span><span class="gcs-val" id="ramUsedStat">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">FREE</span><span class="gcs-val" id="ramFreeStat">--</span></div>
+                  <div class="gc-stat"><span class="gcs-lbl">CACHED</span><span class="gcs-val" id="ramCached">--</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- System Info Row -->
+            <div class="dash-info">
+              <!-- AI Status -->
+              <div class="info-card">
+                <div class="ic-header">
+                  <span class="ic-icon">&#128187;</span>
+                  <span class="ic-title">AI ENGINE</span>
+                  <span class="ic-badge" id="coreStatus">STANDBY</span>
+                </div>
+                <div class="ic-body">
+                   <div class="ic-row"><span class="icl">Mode</span><span class="icr"></span><span class="icv" id="engineModeDisplay">LOCAL</span></div>
+                   <div class="ic-row"><span class="icl">Model</span><span class="icr"></span><span class="icv" id="engineModelDisplay">Configured by backend</span></div>
+                   <div class="ic-row"><span class="icl">Cloud</span><span class="icr"></span><span class="icv" id="cloudModelDisplay">Not in use</span></div>
+                   <div class="ic-row"><span class="icl">Voice</span><span class="icr"></span><span class="icv" id="voiceStatus">NOT REPORTED</span></div>
+                </div>
+                <div class="ic-footer">
+                  <button class="ic-btn" id="aiToggle" onclick="toggleFriday()">
+                    <span id="activateText">ACTIVATE</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Memory Stats -->
+              <div class="info-card">
+                <div class="ic-header">
+                  <span class="ic-icon">&#128218;</span>
+                  <span class="ic-title">MEMORY</span>
+                  <span class="ic-badge">RECALL</span>
+                </div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Facts</span><span class="icr"></span><span class="icv" id="memoryFacts">0</span></div>
+                  <div class="ic-row"><span class="icl">Episodes</span><span class="icr"></span><span class="icv" id="memoryEpisodes">0</span></div>
+                  <div class="ic-row"><span class="icl">Engine</span><span class="icr"></span><span class="icv">SQLite+MiniLM</span></div>
+                  <div class="ic-row"><span class="icl">Status</span><span class="icr"></span><span class="icv" id="memStatus">0 facts</span></div>
+                </div>
+              </div>
+
+              <!-- Guardian -->
+              <div class="info-card">
+                <div class="ic-header">
+                  <span class="ic-icon">&#128274;</span>
+                  <span class="ic-title">GUARDIAN</span>
+                  <span class="ic-badge" id="guardianBadge">AWAITING</span>
+                </div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">CPU Alert</span><span class="icr"></span><span class="icv">&gt; 85%</span></div>
+                  <div class="ic-row"><span class="icl">RAM Alert</span><span class="icr"></span><span class="icv">&gt; 90%</span></div>
+                  <div class="ic-row"><span class="icl">GPU Alert</span><span class="icr"></span><span class="icv">&gt; 85°C</span></div>
+                  <div class="ic-row"><span class="icl">Interval</span><span class="icr"></span><span class="icv">30s</span></div>
+                </div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="info-card">
+                <div class="ic-header">
+                  <span class="ic-icon">&#9889;</span>
+                  <span class="ic-title">ACTIONS</span>
+                </div>
+                <div class="ic-body actions-grid">
+                  <button class="action-btn" onclick="send('open-friday-hud')">
+                    <span class="ab-icon">&#8599;</span>
+                    <span class="ab-text">BROWSER HUD</span>
+                  </button>
+                  <button class="action-btn" onclick="send('open-folder', 'models')">
+                    <span class="ab-icon">&#9641;</span>
+                    <span class="ab-text">MODELS</span>
+                  </button>
+                  <button class="action-btn" onclick="send('open-folder', 'persona')">
+                    <span class="ab-icon">&#9673;</span>
+                    <span class="ab-text">PERSONA</span>
+                  </button>
+                  <button class="action-btn" onclick="switchPanel('logs')">
+                    <span class="ab-icon">&#9636;</span>
+                    <span class="ab-text">LOGS</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ CHAT ============ -->
+        <div class="panel" id="panel-chat">
+          <div class="chat-wrap">
+            <div class="chat-top">
+              <div class="ct-left">
+                <div class="ct-avatar"><img src="assets/friday-logo.png" alt=""/></div>
+                <div><h1 class="ct-title">COMM LINK</h1><div class="ct-sub">SECURE ASSISTANT CHANNEL</div></div>
+              </div>
+              <div class="ct-right">
+                <span class="ct-dot" id="chatStatusDot"></span>
+                <span class="ct-status" id="chatStatusText">CONNECTING...</span>
+              </div>
+            </div>
+            <div class="chat-body">
+              <div id="chatConnecting" class="chat-loading" role="status">
+                <div class="cl-spinner"></div>
+                <span>ESTABLISHING NEURAL LINK...</span>
+              </div>
+              <div id="chatFrame" class="chat-frame">
+                <div id="chatLog" role="log" aria-live="polite" aria-relevant="additions text">
+                  <div class="bubble fri">Launcher ready. Start Friday to open the communication link.</div>
+                </div>
+                <form id="inputBar">
+                  <input id="chatFile" type="file" hidden multiple accept="image/*,.txt,.md,.csv,.json,.log,.py,.js,.html,.pdf" />
+                  <button id="attachBtn" type="button" title="Attach image or file" aria-label="Attach image or file">+</button>
+                  <label class="sr-only" for="chatInput">Message Friday</label>
+                  <input id="chatInput" type="text" autocomplete="off" placeholder="Message Friday..." />
+                  <button id="sendBtn" type="submit">SEND</button>
+                </form>
+              </div>
+            </div>
+            <div class="chat-foot">
+              <button class="cf-btn" onclick="send('open-friday-hud')">&#8599;</button>
+              <button class="cf-btn" onclick="sendWs('stop')" aria-label="Stop current response">&#9632;</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ SETTINGS ============ -->
+        <div class="panel" id="panel-settings">
+          <div class="panel-scroll">
+            <header class="panel-heading"><span>CONFIGURATION</span><h1>Runtime preferences</h1><p>Saved locally. Local mode remains active until OpenRouter is explicitly selected.</p></header>
+            <div class="settings-grid">
+               <div class="info-card"><div class="ic-header"><span class="ic-icon">&#128187;</span><span class="ic-title">AI ENGINE</span></div>
+                 <div class="ic-body">
+                   <div class="ic-row"><label class="icl" for="setReasoningMode">Mode</label><span class="icr"></span><span class="icv"><select id="setReasoningMode"><option value="local">Local</option><option value="openrouter">OpenRouter</option></select></span></div>
+                   <div class="ic-row"><label class="icl" for="setCloudModel">Cloud model</label><span class="icr"></span><span class="icv"><input type="text" id="setCloudModel" placeholder="provider/model" aria-describedby="cloudModelHelp"/></span></div>
+                    <div class="setting-help" id="cloudModelHelp">Default: z-ai/glm-5.3-flash. Configure the API key once with CONFIGURE-OPENROUTER.bat.</div>
+                  <div class="ic-row"><span class="icl">Max Tokens</span><span class="icr"></span><span class="icv"><input type="number" id="setMaxTokens" value="512" min="64" max="2048"/></span></div>
+                  <div class="ic-row"><span class="icl">Context</span><span class="icr"></span><span class="icv"><input type="number" id="setContextTurns" value="10" min="2" max="40"/></span></div>
+                </div>
+              </div>
+              <div class="info-card"><div class="ic-header"><span class="ic-icon">&#127908;</span><span class="ic-title">VOICE</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">TTS</span><span class="icr"></span><span class="icv"><select id="setTtsMode"><option value="local">Kokoro Local</option><option value="emily">Edge TTS</option><option value="sapi">SAPI</option></select></span></div>
+                  <div class="ic-row"><span class="icl">Voice</span><span class="icr"></span><span class="icv"><select id="setLocalVoice"><option value="bf_isabella">Isabella</option></select></span></div>
+                  <div class="ic-row"><span class="icl">Lang</span><span class="icr"></span><span class="icv"><select id="setLanguage"><option value="ms">MS</option><option value="en">EN</option></select></span></div>
+                </div>
+              </div>
+              <div class="info-card"><div class="ic-header"><span class="ic-icon">&#127908;</span><span class="ic-title">MIC</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Default On</span><span class="icr"></span><span class="icv"><div class="tog-wrap"><input type="checkbox" id="setMicDefault" checked/><label class="tog" for="setMicDefault"></label></div></span></div>
+                  <div class="ic-row"><span class="icl">Wake Word</span><span class="icr"></span><span class="icv"><input type="text" id="setWakeWord" value="friday"/></span></div>
+                  <div class="ic-row"><span class="icl">Window (s)</span><span class="icr"></span><span class="icv"><input type="number" id="setWakeWindow" value="8" min="3" max="30"/></span></div>
+                  <div class="ic-row"><span class="icl">RMS</span><span class="icr"></span><span class="icv"><input type="number" id="setMinRms" value="280" min="100" max="1000"/></span></div>
+                  <div class="ic-row"><span class="icl">VAD</span><span class="icr"></span><span class="icv"><input type="number" id="setVadThreshold" value="0.5" min="0.1" max="1.0" step="0.05"/></span></div>
+                </div>
+              </div>
+              <div class="info-card"><div class="ic-header"><span class="ic-icon">&#128218;</span><span class="ic-title">MEMORY</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Facts</span><span class="icr"></span><span class="icv"><input type="number" id="setMemFacts" value="6" min="1" max="20"/></span></div>
+                  <div class="ic-row"><span class="icl">Episodes</span><span class="icr"></span><span class="icv"><input type="number" id="setMemEpisodes" value="2" min="0" max="10"/></span></div>
+                </div>
+              </div>
+              <div class="info-card"><div class="ic-header"><span class="ic-icon">&#128274;</span><span class="ic-title">GUARDIAN</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">CPU %</span><span class="icr"></span><span class="icv"><input type="number" id="setCpuThreshold" value="85" min="50" max="100"/></span></div>
+                  <div class="ic-row"><span class="icl">RAM %</span><span class="icr"></span><span class="icv"><input type="number" id="setRamThreshold" value="90" min="50" max="100"/></span></div>
+                  <div class="ic-row"><span class="icl">GPU °C</span><span class="icr"></span><span class="icv"><input type="number" id="setGpuThreshold" value="85" min="50" max="100"/></span></div>
+                  <div class="ic-row"><span class="icl">Interval</span><span class="icr"></span><span class="icv"><input type="number" id="setGuardianInterval" value="30" min="10" max="120"/></span></div>
+                </div>
+              </div>
+              <div class="info-card"><div class="ic-header"><span class="ic-icon">&#128246;</span><span class="ic-title">NETWORK</span></div>
+                <div class="ic-body">
+                  <div class="ic-row"><span class="icl">Host</span><span class="icr"></span><span class="icv"><input type="text" id="setHost" value="127.0.0.1"/></span></div>
+                   <div class="ic-row"><span class="icl">Port</span><span class="icr"></span><span class="icv"><input type="number" id="setPort" value="8000" min="1024" max="65535"/></span></div>
+                   <div class="ic-row"><span class="icl">Pairing</span><span class="icr"></span><span class="icv"><input type="text" id="setPairingToken" value="" readonly title="Enter this token in the Android FRIDAY Link settings"/></span></div>
+                   <div class="ic-row"><span class="icl">Auto-start</span><span class="icr"></span><span class="icv"><div class="tog-wrap"><input type="checkbox" id="setAutoStart"/><label class="tog" for="setAutoStart"></label></div></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="settings-foot">
+              <button class="action-btn save" onclick="saveSettings()">SAVE CONFIG</button>
+              <button class="action-btn" onclick="resetSettings()">RESET</button>
+              <span class="sf-note">Changes require restart.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ LOGS ============ -->
+        <div class="panel" id="panel-logs">
+          <div class="panel-scroll">
+            <div class="log-bar">
+              <div class="log-filters">
+                <button class="lf active" data-filter="all" onclick="filterLogs('all')">ALL</button>
+                <button class="lf" data-filter="info" onclick="filterLogs('info')">INFO</button>
+                <button class="lf" data-filter="warn" onclick="filterLogs('warn')">WARN</button>
+                <button class="lf" data-filter="error" onclick="filterLogs('error')">ERR</button>
+              </div>
+              <div class="log-acts">
+                <button class="la" onclick="clearLogs()">CLEAR</button>
+                <button class="la" onclick="exportLogs()">EXPORT</button>
+              </div>
+            </div>
+            <div class="logs-box" id="logsContainer">
+              <div class="log-empty">// AWAITING OUTPUT</div>
+            </div>
+            <div class="log-foot"><span id="logCount">0</span> entries</div>
+          </div>
+        </div>
+
+        <!-- ============ MEMORY ============ -->
+        <div class="panel" id="panel-memory">
+          <div class="panel-scroll">
+            <div class="mem-warn"><span>&#9888;</span> SECRETS NEVER RETAINED.</div>
+            <div class="mem-list" id="memoryList"><div class="mem-empty">// NO FACTS STORED.</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div id="bottombar">
+      <div class="bb-left">
+         <span class="bb-item">SYS: <span id="bbSys">READY</span></span>
+        <span class="bb-sep">|</span>
+         <span class="bb-item">NET: <span id="bbNet">OFFLINE</span></span>
+        <span class="bb-sep">|</span>
+        <span class="bb-item">CORE: <span id="bbCore">STANDBY</span></span>
+      </div>
+      <div class="bb-center">
+         <span class="bb-item" id="bbCoord">LOCAL CONTROL SURFACE</span>
+      </div>
+      <div class="bb-right">
+        <span class="bb-item" id="tbTime">00:00:00</span>
+        <span class="bb-sep">|</span>
+        <span class="bb-item" id="tbDate">2026.08.27</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Guardian Alert -->
+  <div id="guardianAlert" class="ga" aria-hidden="true">
+    <div class="ga-inner">
+      <div class="ga-title">&#9888; SYSTEM GUARDIAN</div>
+      <div class="ga-msg" id="guardianMessage"></div>
+    </div>
+    <button class="ga-close" id="guardianDismiss">&#10005;</button>
+  </div>
+
+  <!-- Vision Warning -->
+  <div id="visionWarning" class="vw" aria-hidden="true">
+    <span class="vw-dot"></span>
+    <span>VISION ACTIVE</span>
+    <span class="vw-sub">Analyzing visual input</span>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Primary navigation">
+    <button class="mobile-nav-btn active" data-panel="dashboard" onclick="switchPanel('dashboard')">DASH</button>
+    <button class="mobile-nav-btn" data-panel="chat" onclick="switchPanel('chat')">COMM</button>
+    <button class="mobile-nav-btn" data-panel="settings" onclick="switchPanel('settings')">CONFIG</button>
+    <button class="mobile-nav-btn" data-panel="logs" onclick="switchPanel('logs')">DIAG</button>
+    <button class="mobile-nav-btn" data-panel="memory" onclick="switchPanel('memory')">MEM</button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

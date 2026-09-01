@@ -1,0 +1,51 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# --- Virtual envs / bundled runtimes (large, regenerated) ---
+.venv/
+py312/
+wheels/
+
+# --- Models / weights (large binaries) ---
+models/
+.models-backup/
+
+# --- Runtime data ---
+captures/
+chat_uploads/
+background_tasks/
+*.log
+
+# --- Databases ---
+*.db
+*.db-wal
+*.db-shm
+*.bak*
+
+# --- Local runtime settings (machine-specific) ---
+hud-settings.json
+runtime_settings.json
+
+# --- Electron launcher ---
+launcher/node_modules/
+launcher/build/
+dist-launcher/
+
+# --- Android build output ---
+friday-android/.gradle/
+friday-android/.kotlin/
+friday-android/local.properties
+friday-android/hs_err_pid*.log
+**/build/
+*.apk
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- IDE ---
+.idea/
+.vscode/

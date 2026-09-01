@@ -1,0 +1,37 @@
+{
+  "name": "friday-hud-launcher",
+  "version": "1.0.0",
+  "description": "F.R.I.D.A.Y. AI - Iron Man HUD Launcher",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win portable",
+    "install-pydeps": "pip install -r ../requirements.txt"
+  },
+  "author": "Friday Kit",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "^44.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.fridaykit.hud",
+    "productName": "F.R.I.D.A.Y. HUD",
+    "directories": {
+      "output": "../dist-launcher"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "FRIDAY-HUD.exe"
+    }
+  }
+}

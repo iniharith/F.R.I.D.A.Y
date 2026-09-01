@@ -1,0 +1,27 @@
+{
+  "name": "F.R.I.D.A.Y. AI Assistant",
+  "short_name": "FRIDAY",
+  "description": "Friday Kit local assistant control surface",
+  "start_url": "/",
+  "display": "standalone",
+  "scope": "/",
+  "background_color": "#05080c",
+  "theme_color": "#071017",
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "lang": "en",
+  "dir": "ltr"
+}

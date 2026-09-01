@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#FF04101A</color>
+    <color name="surface">#FF0C1A28</color>
+    <color name="cyan">#FF40C4FF</color>
+    <color name="white">#FFD7ECFF</color>
+    <color name="dim">#FF6B8BA4</color>
+    <color name="amber">#FFFFB648</color>
+    <color name="line">#FF172A3A</color>
+    <color name="danger">#FFFF4444</color>
+</resources>
