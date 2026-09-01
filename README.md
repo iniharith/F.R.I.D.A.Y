@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/friday-banner.svg" alt="F.R.I.D.A.Y. personal AI command system" width="100%">
+</p>
+
 # F.R.I.D.A.Y.
 
 F.R.I.D.A.Y. is a Windows-first personal AI assistant that combines a local

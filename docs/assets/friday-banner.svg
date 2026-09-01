@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">F.R.I.D.A.Y. personal AI agent banner</title>
+  <desc id="desc">A dark technical interface banner with a cyan command-core mark and the F.R.I.D.A.Y. wordmark.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#020609"/>
+      <stop offset="0.54" stop-color="#071119"/>
+      <stop offset="1" stop-color="#031018"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="146" y1="116" x2="493" y2="505" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E7FDFF"/>
+      <stop offset="0.28" stop-color="#4DD6FF"/>
+      <stop offset="1" stop-color="#087CA8"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="148" y1="104" x2="514" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFE8B0"/>
+      <stop offset="0.48" stop-color="#D8B36A"/>
+      <stop offset="1" stop-color="#8F6425"/>
+    </linearGradient>
+    <linearGradient id="line" x1="530" y1="0" x2="1190" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4DD6FF"/>
+      <stop offset="1" stop-color="#4DD6FF" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="aura" cx="0" cy="0" r="1" gradientTransform="translate(320 320) rotate(90) scale(290)">
+      <stop stop-color="#1E9AC2" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#1E9AC2" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#4DD6FF" stroke-opacity="0.055"/>
+    </pattern>
+    <pattern id="micro" width="8" height="8" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="0.8" fill="#8BE7FF" fill-opacity="0.12"/>
+    </pattern>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="9" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="frame"><rect width="1280" height="640" rx="24"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="640" fill="url(#background)"/>
+    <rect width="1280" height="640" fill="url(#grid)"/>
+    <rect width="1280" height="640" fill="url(#micro)"/>
+    <circle cx="320" cy="320" r="290" fill="url(#aura)"/>
+    <path d="M0 538 356 182 542 368 907 3" fill="none" stroke="#4DD6FF" stroke-opacity="0.055" stroke-width="90"/>
+    <path d="M1010 0 690 320l250 250" fill="none" stroke="#D8B36A" stroke-opacity="0.035" stroke-width="70"/>
+
+    <g transform="translate(82 82)">
+      <path d="M238 0 444 119v238L238 476 32 357V119Z" fill="#061018" stroke="#284451" stroke-width="3"/>
+      <path d="M238 20 426 129v218L238 456 50 347V129Z" fill="#03090D" stroke="#4DD6FF" stroke-opacity="0.38" stroke-width="2"/>
+      <path d="M238 39 409 138v199L238 436 67 337V138Z" fill="none" stroke="#D8B36A" stroke-opacity="0.44"/>
+
+      <circle cx="238" cy="238" r="139" fill="none" stroke="#4DD6FF" stroke-opacity="0.12" stroke-width="20"/>
+      <circle cx="238" cy="238" r="129" fill="none" stroke="#4DD6FF" stroke-opacity="0.36" stroke-width="2" stroke-dasharray="3 18"/>
+      <path d="M69 177c32-82 103-137 185-145" fill="none" stroke="#4DD6FF" stroke-opacity="0.2" stroke-width="7" stroke-linecap="round"/>
+      <path d="M407 299c-27 77-91 132-169 140" fill="none" stroke="#4DD6FF" stroke-opacity="0.2" stroke-width="7" stroke-linecap="round"/>
+      <path d="M50 267c11 57 44 107 91 139" fill="none" stroke="#D8B36A" stroke-width="5" stroke-linecap="round"/>
+      <path d="M426 209c-10-56-42-105-89-138" fill="none" stroke="#D8B36A" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="50" cy="267" r="7" fill="#D8B36A" filter="url(#glow)"/>
+      <circle cx="426" cy="209" r="7" fill="#D8B36A" filter="url(#glow)"/>
+
+      <path d="M153 102h193v55H216v55h107v53H216v107h-63Z" fill="#4DD6FF" opacity="0.2" filter="url(#glow)"/>
+      <path d="M153 102h193v55H216v55h107v53H216v107h-63Z" fill="url(#cyan)"/>
+      <path d="M216 157h130v11H228v44h-12Z" fill="#FFFFFF" opacity="0.42"/>
+      <path d="M153 372h63v-17h-45V120h175v-18H153Z" fill="url(#gold)" opacity="0.9"/>
+    </g>
+
+    <g transform="translate(585 150)">
+      <text x="0" y="0" fill="#D8B36A" font-family="Consolas, monospace" font-size="15" letter-spacing="6">PERSONAL AI COMMAND SYSTEM</text>
+      <rect y="28" width="522" height="2" fill="url(#line)"/>
+      <text x="-5" y="128" fill="#E8F6FF" font-family="Bahnschrift, Arial Narrow, sans-serif" font-size="88" font-weight="700" letter-spacing="13">F.R.I.D.A.Y.</text>
+      <text x="2" y="181" fill="#8BE7FF" font-family="Consolas, monospace" font-size="19" letter-spacing="4">LOCAL FIRST  /  VOICE  /  VISION  /  MEMORY</text>
+
+      <g transform="translate(0 246)" font-family="Consolas, monospace">
+        <rect width="565" height="100" rx="4" fill="#0B151C" stroke="#4DD6FF" stroke-opacity="0.22"/>
+        <path d="M0 18V0h18M547 0h18v18M565 82v18h-18M18 100H0V82" fill="none" stroke="#D8B36A" stroke-width="2"/>
+        <circle cx="29" cy="31" r="5" fill="#00CC66"/>
+        <text x="46" y="36" fill="#9BB0BF" font-size="14" letter-spacing="2">SYSTEM ONLINE</text>
+        <text x="29" y="70" fill="#4DD6FF" font-size="14" letter-spacing="2">OFFLINE BY DEFAULT</text>
+        <text x="269" y="70" fill="#687C8B" font-size="14" letter-spacing="2">TOOLS STAY LOCAL</text>
+      </g>
+    </g>
+
+    <g fill="#4DD6FF" opacity="0.55">
+      <rect x="20" y="20" width="90" height="2"/>
+      <rect x="20" y="20" width="2" height="42"/>
+      <rect x="1170" y="618" width="90" height="2"/>
+      <rect x="1258" y="578" width="2" height="42"/>
+    </g>
+    <text x="1160" y="45" fill="#687C8B" font-family="Consolas, monospace" font-size="11" letter-spacing="3">CORE // 01</text>
+    <text x="24" y="608" fill="#687C8B" font-family="Consolas, monospace" font-size="11" letter-spacing="3">QWEN + KOKORO + WHISPER</text>
+  </g>
+  <rect x="1" y="1" width="1278" height="638" rx="23" fill="none" stroke="#4DD6FF" stroke-opacity="0.24" stroke-width="2"/>
+</svg>
