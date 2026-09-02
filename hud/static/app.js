@@ -85,6 +85,16 @@ let pendingAttachments = [];
 let pinEnabled = false;
 const toolEvents = new Map();
 
+/* ============ DESKTOP SHELL (Electron only) ============ */
+const shellToggle = document.getElementById("launcherToggle");
+const shellServerStatus = document.getElementById("launcherServerStatus");
+const shellLogs = document.getElementById("shellLogs");
+const shellClearLogs = document.getElementById("shellClearLogs");
+const shellQr = document.getElementById("shellQr");
+const shellPairUri = document.getElementById("shellPairUri");
+const shellRefreshPairing = document.getElementById("shellRefreshPairing");
+const isLauncher = typeof window !== "undefined" && !!window.friday;
+
 /* ============ IDE WORKSHOP ============ */
 const idePanel = document.getElementById("idePanel");
 const ideTabs = document.getElementById("ideTabs");
@@ -209,6 +219,18 @@ function addBubble(content, { cls = "", isHTML = false } = {}) {
   log.appendChild(bubble);
   log.scrollTop = log.scrollHeight;
   return bubble;
+}
+
+function renderHistory(items) {
+  log.innerHTML = "";
+  assistantBubble = null;
+  for (const item of items || []) {
+    if (item.type === "user") {
+      addBubble(item.text, { cls: "boss" });
+    } else if (item.type === "assistant") {
+      addBubble("", { cls: "fri", isHTML: true }).innerHTML = markdownToHtml(item.text);
+    }
+  }
 }
 
 /* ----- IDE helpers ----- */
@@ -719,6 +741,10 @@ function handle(msg) {
     case "state":
       setState(msg.value);
       return;
+    case "history": {
+      renderHistory(msg.items || []);
+      return;
+    }
     case "guardian": {
       if (guardianStatus) {
         guardianStatus.innerHTML = msg.active ? '<i class="dot off"></i>ALERT' : '<i class="dot on"></i>ACTIVE';
@@ -870,10 +896,8 @@ function handle(msg) {
       if (heardVal) heardVal.textContent = "HEARD";
       return;
     case "user":
-      if (msg.source === "voice") {
-        addBubble(msg.text, { cls: "boss" });
-        assistantBubble = null;
-      }
+      addBubble(msg.text, { cls: "boss" });
+      assistantBubble = null;
       return;
     case "error":
       hideThinking();
@@ -1030,8 +1054,6 @@ form.addEventListener("submit", (e) => {
   const label = text || (attachments.some((a) => a.kind === "image")
     ? "[image]"
     : attachments.map((a) => a.name).join(", "));
-  addBubble(label, { cls: "boss" });
-  assistantBubble = null;
   ws.send(JSON.stringify({ type: "chat", text, attachments }));
 });
 
@@ -1218,7 +1240,98 @@ setConnected(false);
 connect();
 clock();
 agentSessionReset();
+initLauncherShell();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+}
+
+/* ============ DESKTOP SHELL wiring ============ */
+function fridaySend(channel, ...args) {
+  if (window.friday) window.friday.send(channel, ...args);
+}
+function fridayInvoke(channel, ...args) {
+  return window.friday ? window.friday.invoke(channel, ...args) : Promise.reject(new Error("not electron"));
+}
+
+function initLauncherShell() {
+  if (!isLauncher) return;
+  document.body.classList.add("electron");
+
+  const serverState = { ready: false, logs: [] };
+
+  function appendLog(level, message) {
+    serverState.logs.push(`${new Date().toLocaleTimeString("en-GB", { hour12: false })} [${level}] ${message}`);
+    if (serverState.logs.length > 300) serverState.logs.shift();
+    renderLogs();
+  }
+
+  function renderLogs() {
+    if (shellLogs) shellLogs.innerHTML = serverState.logs.slice(-100).map((l) => `<div>${l}</div>`).join("");
+  }
+
+  function setServerStatus(status) {
+    serverState.ready = status === "ready";
+    const map = { ready: "READY", starting: "STARTING", stopped: "STOPPED", error: "ERROR" };
+    if (shellServerStatus) {
+      shellServerStatus.textContent = map[status] || status.toUpperCase();
+      shellServerStatus.dataset.state = status;
+    }
+    if (shellToggle) {
+      shellToggle.textContent = serverState.ready ? "STOP FRIDAY" : "START FRIDAY";
+      shellToggle.className = serverState.ready ? "deny-btn" : "approve-btn";
+    }
+  }
+
+  if (shellToggle) shellToggle.addEventListener("click", () => {
+    fridaySend(serverState.ready ? "stop-friday" : "start-friday");
+  });
+
+  if (shellClearLogs) shellClearLogs.addEventListener("click", () => {
+    serverState.logs = [];
+    renderLogs();
+  });
+
+  if (shellRefreshPairing) shellRefreshPairing.addEventListener("click", async () => {
+    try {
+      const info = await fridayInvoke("refresh-pairing-token");
+      renderPairing(info);
+    } catch (_) {}
+  });
+
+  function renderPairing(info) {
+    if (shellQr && info.qrDataUrl) shellQr.src = info.qrDataUrl;
+    if (shellPairUri) shellPairUri.textContent = info.uri || "--";
+  }
+
+  function renderSystem(info) {
+    if (!info) return;
+    const set = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    set("shellCpu", `${info.cpuUsage ?? "--"}%`);
+    set("shellCpuSub", info.cpuModel || "--");
+    set("shellCpuModel", info.cpuModel || "--");
+    set("shellCores", info.cpus ?? "--");
+    set("shellHostname", info.hostname || "--");
+    set("shellRam", `${info.freeMemory ?? "--"}/${info.totalMemory ?? "--"} GB`);
+    set("shellMem", `${info.totalMemory ?? "--"} GB`);
+    set("shellMemSub", `${info.freeMemory ?? "--"} GB free`);
+    set("shellUptime", `${info.uptime ?? "--"} h`);
+    const cpuFill = document.getElementById("shellCpuFill");
+    if (cpuFill) cpuFill.style.width = `${Math.min(100, info.cpuUsage || 0)}%`;
+  }
+
+  window.friday.on("server-status", (_e, status) => setServerStatus(status));
+  window.friday.on("log-message", (_e, { level, message }) => appendLog(level, message));
+
+  fridayInvoke("get-pairing-info").then(renderPairing).catch(() => {});
+  const sysTimer = setInterval(async () => {
+    try {
+      renderSystem(await fridayInvoke("get-system-info"));
+    } catch (_) {}
+  }, 2000);
+  window.addEventListener("beforeunload", () => clearInterval(sysTimer));
+  setServerStatus("starting");
 }

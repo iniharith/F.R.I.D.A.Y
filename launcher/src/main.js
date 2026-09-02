@@ -89,6 +89,8 @@ function getPythonPath() {
 }
 
 function createWindow() {
+  const settings = readSettings();
+  const url = `http://127.0.0.1:${settings.port || FRIDAY_PORT}/?from=launcher`;
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -106,9 +108,29 @@ function createWindow() {
     icon: path.join(__dirname, 'assets', 'friday-logo.png'),
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
-  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  mainWindow.webContents.on('will-navigate', (event) => event.preventDefault());
+  const loadHud = () => {
+    const current = readSettings();
+    const hudUrl = `http://127.0.0.1:${current.port || FRIDAY_PORT}/?from=launcher`;
+    mainWindow.loadURL(hudUrl);
+  };
+
+  const navigateHome = (event) => {
+    event.preventDefault();
+    loadHud();
+  };
+
+  mainWindow.loadURL(url).catch(loadHud);
+  mainWindow.webContents.on('will-navigate', navigateHome);
+  mainWindow.webContents.on('did-fail-load', (event, code, desc) => {
+    if (code === -3) return;
+    // Backend may not be ready yet; retry once the server is up.
+    if (!isServerRunning) return;
+    setTimeout(loadHud, 2000);
+  });
+  mainWindow.webContents.setWindowOpenHandler(({ url: target }) => {
+    if (/^https?:/.test(target)) require('electron').shell.openExternal(target);
+    return { action: 'deny' };
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;

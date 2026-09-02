@@ -330,13 +330,22 @@ function initChatLogic(container) {
     const attachments = pendingAttachments;
     pendingAttachments = [];
     textInput.value = '';
-    addChatBubble(chatLog, 'boss', text || '[image]');
     assistantBubble = null;
     ws.send(JSON.stringify({ type: 'chat', text, attachments }));
   });
 
   window._handleChatDelta = (msg) => {
-    if (msg.type === 'delta') {
+    if (msg.type === 'history') {
+      chatLog.innerHTML = '';
+      assistantBubble = null;
+      for (const item of (msg.items || [])) {
+        if (item.type === 'user') {
+          addChatBubble(chatLog, 'boss', item.text);
+        } else if (item.type === 'assistant') {
+          addChatBubble(chatLog, 'fri', item.text);
+        }
+      }
+    } else if (msg.type === 'delta') {
       hideThinking();
       if (!assistantBubble) {
         assistantBubble = addChatBubble(chatLog, 'fri streaming', '');
@@ -366,7 +375,7 @@ function initChatLogic(container) {
       if (assistantBubble) assistantBubble.remove();
       assistantBubble = null;
       addChatBubble(chatLog, 'fri', msg.text || 'The backend could not complete that request.');
-    } else if (msg.type === 'user' && msg.source === 'voice') {
+    } else if (msg.type === 'user') {
       addChatBubble(chatLog, 'boss', msg.text);
       assistantBubble = null;
     } else if (msg.type === 'interrupted') {

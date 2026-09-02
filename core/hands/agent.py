@@ -68,6 +68,15 @@ MANIFEST = [
         },
     },
     {
+        "name": "run_script",
+        "risk": "careful",
+        "description": "Run an existing script file (.py, .bat, .ps1 or .cmd) on this machine and return its output. Confirmation required.",
+        "arguments": {
+            "path": "absolute path to the script file to execute",
+            "args": "optional space-separated arguments to pass to the script",
+        },
+    },
+    {
         "name": "run_background",
         "risk": "careful",
         "description": "Start a detached background subagent task (long shell command) without blocking the chat; returns a task id immediately and the Boss is notified when it finishes. Confirmation required.",

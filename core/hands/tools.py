@@ -231,6 +231,7 @@ _APP_ALIASES = {
     "edge": "edge",
     "microsoft edge": "edge",
     "firefox": "firefox",
+    "brave": "brave",
     "notepad": "notepad",
     "calculator": "calculator",
     "calc": "calculator",
@@ -250,12 +251,27 @@ _APP_ALIASES = {
     "vscode": "vscode",
     "spotify": "spotify",
     "steam": "steam",
+    "word": "word",
+    "microsoft word": "word",
+    "excel": "excel",
+    "microsoft excel": "excel",
+    "powerpoint": "powerpoint",
+    "microsoft powerpoint": "powerpoint",
+    "outlook": "outlook",
+    "microsoft outlook": "outlook",
+    "onenote": "onenote",
+    "discord": "discord",
+    "telegram": "telegram",
+    "whatsapp": "whatsapp",
+    "minecraft": "minecraft",
+    "epic games": "epic_games",
 }
 
 _APP_LABELS = {
     "chrome": "Chrome",
     "edge": "Microsoft Edge",
     "firefox": "Firefox",
+    "brave": "Brave",
     "notepad": "Notepad",
     "calculator": "Calculator",
     "explorer": "File Explorer",
@@ -269,6 +285,16 @@ _APP_LABELS = {
     "vscode": "Visual Studio Code",
     "spotify": "Spotify",
     "steam": "Steam",
+    "word": "Microsoft Word",
+    "excel": "Microsoft Excel",
+    "powerpoint": "Microsoft PowerPoint",
+    "outlook": "Microsoft Outlook",
+    "onenote": "OneNote",
+    "discord": "Discord",
+    "telegram": "Telegram",
+    "whatsapp": "WhatsApp",
+    "minecraft": "Minecraft",
+    "epic_games": "Epic Games Launcher",
 }
 
 _APP_COMMANDS = {
@@ -282,10 +308,11 @@ _APP_COMMANDS = {
         [r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"],
     ],
     "firefox": [["firefox.exe"], [r"%ProgramFiles%\Mozilla Firefox\firefox.exe"]],
+    "brave": [["brave.exe"], [r"%ProgramFiles%\BraveSoftware\Brave-Browser\Application\brave.exe"]],
     "notepad": [["notepad.exe"]],
     "calculator": [["calc.exe"]],
     "explorer": [["explorer.exe"]],
-    "powershell": [["powershell.exe"]],
+    "powershell": [["powershell.exe"], [r"%ProgramFiles%\PowerShell\7\pwsh.exe"]],
     "cmd": [["cmd.exe"]],
     "terminal": [["wt.exe"], ["powershell.exe"]],
     "task_manager": [["taskmgr.exe"]],
@@ -295,15 +322,37 @@ _APP_COMMANDS = {
     "vscode": [
         ["code.exe"],
         [r"%LocalAppData%\Programs\Microsoft VS Code\Code.exe"],
+        [r"%ProgramFiles%\Microsoft VS Code\Code.exe"],
     ],
     "spotify": [["spotify.exe"], [r"%AppData%\Spotify\Spotify.exe"]],
     "steam": [["steam.exe"], [r"%ProgramFiles(x86)%\Steam\steam.exe"]],
+    "word": [["winword.exe"], [r"%ProgramFiles%\Microsoft Office\root\Office16\WINWORD.EXE"]],
+    "excel": [["excel.exe"], [r"%ProgramFiles%\Microsoft Office\root\Office16\EXCEL.EXE"]],
+    "powerpoint": [["powerpnt.exe"], [r"%ProgramFiles%\Microsoft Office\root\Office16\POWERPNT.EXE"]],
+    "outlook": [["outlook.exe"], [r"%ProgramFiles%\Microsoft Office\root\Office16\OUTLOOK.EXE"]],
+    "onenote": [["onenote.exe"], [r"%ProgramFiles%\Microsoft Office\root\Office16\ONENOTE.EXE"]],
+    "discord": [
+        ["discord.exe"],
+        [r"%LocalAppData%\Discord\Update.exe", "--processStart", "Discord.exe"],
+    ],
+    "telegram": [
+        ["Telegram.exe"],
+        [r"%AppData%\Telegram Desktop\Telegram.exe"],
+        [r"%LocalAppData%\Telegram Desktop\Telegram.exe"],
+    ],
+    "whatsapp": [
+        ["WhatsApp.exe"],
+        [r"%LocalAppData%\WhatsApp\WhatsApp.exe"],
+    ],
+    "minecraft": [["minecraft.exe"], [r"%ProgramFiles%\Minecraft\Minecraft.exe"]],
+    "epic_games": [["EpicGamesLauncher.exe"], [r"%ProgramFiles(x86)%\Epic Games\Launcher\Portal\Binaries\Win64\EpicGamesLauncher.exe"]],
 }
 
 _PROCESS_NAMES = {
     "chrome": "chrome.exe",
     "edge": "msedge.exe",
     "firefox": "firefox.exe",
+    "brave": "brave.exe",
     "notepad": "notepad.exe",
     "calculator": "CalculatorApp.exe",
     "powershell": "powershell.exe",
@@ -313,6 +362,16 @@ _PROCESS_NAMES = {
     "vscode": "Code.exe",
     "spotify": "Spotify.exe",
     "steam": "steam.exe",
+    "word": "WINWORD.EXE",
+    "excel": "EXCEL.EXE",
+    "powerpoint": "POWERPNT.EXE",
+    "outlook": "OUTLOOK.EXE",
+    "onenote": "ONENOTE.EXE",
+    "discord": "Discord.exe",
+    "telegram": "Telegram.exe",
+    "whatsapp": "WhatsApp.exe",
+    "minecraft": "minecraft.exe",
+    "epic_games": "EpicGamesLauncher.exe",
 }
 
 _WEBSITES = {
@@ -322,6 +381,21 @@ _WEBSITES = {
     "github": "https://github.com",
     "reddit": "https://www.reddit.com",
     "wikipedia": "https://www.wikipedia.org",
+    "twitter": "https://twitter.com",
+    "x": "https://twitter.com",
+    "facebook": "https://www.facebook.com",
+    "instagram": "https://www.instagram.com",
+    "linkedin": "https://www.linkedin.com",
+    "netflix": "https://www.netflix.com",
+    "amazon": "https://www.amazon.com",
+    "wa": "https://web.whatsapp.com",
+    "whatsapp web": "https://web.whatsapp.com",
+    "stackoverflow": "https://stackoverflow.com",
+    "stack overflow": "https://stackoverflow.com",
+    "opencode": "https://opencode.ai",
+    "chatgpt": "https://chat.openai.com",
+    "grok": "https://grok.com",
+    "claude": "https://claude.ai",
 }
 
 _SENSITIVE_TEXT = re.compile(
@@ -793,14 +867,24 @@ class TaskAgent:
                     f"Start a detached background task: {command[:160]}",
                 )
 
-        # run / execute a shell command or code
+        # run / execute a shell command, code, or script file
         run_match = re.fullmatch(
-            r"(?:run|execute|do|type)(?:\s+this)?\s+(?:command\s*[:\-]\s*|the command\s*[:\-]\s*)?(.+)",
+            r"(?:run|execute|do|type)(?:\s+this)?\s+(?:command\s*[:\-]\s*|the command\s*[:\-]\s*|a script\s*)?(.+)",
             text,
             re.IGNORECASE,
         )
         if run_match:
             command = run_match.group(1).strip(' "\'`')
+            lower_command = command.lower()
+            script_ext = re.search(r"\.(py|ps1|bat|cmd)\b", lower_command)
+            if command and script_ext and not lower_command.startswith(("python", "py ")):
+                return self._request(
+                    "run_script",
+                    {"path": command.split()[0]},
+                    Risk.CAREFUL,
+                    "Run script",
+                    f"Execute the script: {command[:160]}",
+                )
             if command and not self._looks_like_plain_chat(command, text):
                 return self._request(
                     "run_shell",
@@ -1054,6 +1138,7 @@ class TaskAgent:
             "power": self._power,
             "recycle_file": self._recycle_file,
             "run_shell": self._run_shell,
+            "run_script": self._run_script,
             "run_background": self._run_background,
             "background_status": self._background_status,
             "read_file": self._read_file,
@@ -1159,14 +1244,36 @@ class TaskAgent:
         parsed = urlparse(url)
         if parsed.scheme not in {"http", "https"}:
             return ToolResult(False, "I blocked an invalid website address, Boss.")
-        opened = webbrowser.open(url)
         label = label or url
-        return ToolResult(
-            bool(opened),
-            f"Opening {label}, Boss."
-            if opened
-            else f"I couldn't open {label}, Boss.",
-        )
+        # Prefer a native Windows launch so the default browser always comes to
+        # the foreground, even when a browser instance is already running.
+        try:
+            if os.name == "nt":
+                subprocess.Popen(
+                    ["cmd", "/c", "start", "", url],
+                    close_fds=True,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+                return ToolResult(True, f"Opening {label}, Boss.")
+            opened = webbrowser.open(url)
+            return ToolResult(
+                bool(opened),
+                f"Opening {label}, Boss."
+                if opened
+                else f"I couldn't open {label}, Boss.",
+            )
+        except Exception:
+            try:
+                opened = webbrowser.open(url)
+                return ToolResult(
+                    bool(opened),
+                    f"Opening {label}, Boss."
+                    if opened
+                    else f"I couldn't open {label}, Boss.",
+                )
+            except Exception:
+                return ToolResult(False, f"I couldn't open {label}, Boss.")
 
     @staticmethod
     def _web_search(query: str) -> ToolResult:
@@ -2152,6 +2259,59 @@ class TaskAgent:
             sections.append("Output:\n" + output[:6000])
         if err:
             sections.append("Error output:\n" + err[:4000])
+        return ToolResult(
+            ok,
+            "\n\n".join(sections),
+            data={"stdout": output[:6000], "stderr": err[:4000], "exit_code": process.returncode},
+        )
+
+    @staticmethod
+    def _run_script(path: str, args: str = "") -> ToolResult:
+        """Run an existing .py, .ps1, .bat or .cmd script on this machine."""
+        target = TaskAgent._resolve_user_path(path)
+        if target is None:
+            return ToolResult(False, "That script path isn't valid, Boss.")
+        if not target.exists() or not target.is_file():
+            return ToolResult(False, f"I couldn't find that script at {path}, Boss.")
+
+        suffix = target.suffix.lower()
+        executable_map = {
+            ".py": ["py", "-3"],
+            ".ps1": ["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File"],
+            ".bat": ["cmd.exe", "/c", "call"],
+            ".cmd": ["cmd.exe", "/c", "call"],
+        }
+        if suffix not in executable_map:
+            return ToolResult(False, "Only .py, .ps1, .bat and .cmd scripts can be run, Boss.")
+
+        prefix = executable_map[suffix]
+        command = [*prefix, str(target)]
+        if args:
+            command.extend(args.split())
+
+        try:
+            process = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+        except subprocess.TimeoutExpired:
+            return ToolResult(False, "The script timed out after 2 minutes, Boss.")
+        except Exception as exc:
+            return ToolResult(False, f"I couldn't run that script: {exc}")
+
+        output = (process.stdout or "").strip()
+        err = (process.stderr or "").strip()
+        ok = process.returncode == 0
+        sections = []
+        if output:
+            sections.append("Output:\n" + output[:6000])
+        if err:
+            sections.append("Error output:\n" + err[:4000])
+        if not output and not err:
+            message = "The script completed with no output." if ok else f"The script failed with exit code {process.returncode}."
+            return ToolResult(ok, message, data={"exit_code": process.returncode})
         return ToolResult(
             ok,
             "\n\n".join(sections),

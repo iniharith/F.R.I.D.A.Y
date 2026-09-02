@@ -40,10 +40,11 @@ data class FridayMessage(
     val gpu_temperature_c: Double? = null,
     val gpu_memory_used_mb: Double? = null,
     val gpu_memory_total_mb: Double? = null,
-    val temperature: Double? = null,
+val temperature: Double? = null,
     val top_p: Double? = null,
     val max_new_tokens: Int? = null,
     val context_turns: Int? = null,
+    val items: JsonElement? = null,
 )
 
 class FridayWebSocket(

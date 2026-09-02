@@ -46,6 +46,7 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 brain = Brain()
 speaker = Speaker()
 history: list[dict] = []
+chat_log: list[dict] = []
 clients: set[WebSocket] = set()
 tasks: set[asyncio.Task] = set()
 conversation_lock = asyncio.Lock()
@@ -250,6 +251,12 @@ async def broadcast(type_: str, **data) -> None:
     clients.difference_update(stale)
 
 
+def _append_chat(entry: dict) -> None:
+    """Record a chat entry for cross-client history replay (capped)."""
+    chat_log.append(entry)
+    del chat_log[:-100]
+
+
 async def set_state(value: str) -> None:
     global assistant_state
     assistant_state = value
@@ -285,6 +292,7 @@ async def deliver_response(
             success,
         )
     await broadcast("assistant", text=message, **target)
+    _append_chat({"type": "assistant", "text": message, "response_id": target.get("response_id", ""), "timestamp": target.get("timestamp", time.time())})
     if persist:
         await asyncio.to_thread(memory_store.record, "assistant", message, "tool")
     if speaker.enabled:
@@ -1233,6 +1241,7 @@ async def process_message(text: str, source: str, image_path: str | None = None)
         current_cancel = cancel
         try:
             await broadcast("user", text=text, source=source)
+            _append_chat({"type": "user", "text": text, "source": source, "timestamp": time.time()})
             await set_state("thinking")
             await asyncio.to_thread(experience_store.observe_user, text)
 
@@ -1394,6 +1403,7 @@ async def process_message(text: str, source: str, image_path: str | None = None)
             if not reply:
                 reply = "I couldn't produce a usable response. Please try rephrasing the request."
                 await broadcast("assistant", text=reply, response_id="", timestamp=time.time())
+                _append_chat({"type": "assistant", "text": reply, "response_id": "", "timestamp": time.time()})
 
             history.extend(
                 [
@@ -1413,6 +1423,9 @@ async def process_message(text: str, source: str, image_path: str | None = None)
                     True,
                 )
                 await broadcast("response_complete", text=reply, **target)
+
+            if reply and not cancel.is_set():
+                _append_chat({"type": "assistant", "text": reply, "response_id": "", "timestamp": target.get("timestamp", time.time())})
 
             if cancel.is_set():
                 await broadcast("interrupted")
@@ -1436,6 +1449,7 @@ async def channel(ws: WebSocket):
     await ws.accept()
     clients.add(ws)
     await ws.send_text(json.dumps({"type": "state", "value": assistant_state}))
+    await ws.send_text(json.dumps({"type": "history", "items": chat_log}))
     await ws.send_text(
         json.dumps(
             {

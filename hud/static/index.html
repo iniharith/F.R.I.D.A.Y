@@ -37,6 +37,11 @@
           <span class="td-item"><span class="td-lbl">FACTS</span><span class="td-val" id="tbFacts">0</span></span>
         </div>
         <span class="tb-tag" id="tbMode">MODE CHECKING</span>
+        <div class="tb-controls launcher-only">
+          <button class="tb-btn" onclick="fridaySend('window-minimize')" aria-label="Minimize window">&#9472;</button>
+          <button class="tb-btn" onclick="fridaySend('window-maximize')" aria-label="Maximize or restore window">&#9723;</button>
+          <button class="tb-btn close" onclick="fridaySend('window-close')" aria-label="Close window">&#10005;</button>
+        </div>
       </div>
     </div>
 
@@ -64,6 +69,9 @@
           </button>
           <button class="sb-btn" data-panel="settings" onclick="switchPanel('settings')">
             <span class="sb-icon">&#9881;</span><span>SETTINGS</span>
+          </button>
+          <button class="sb-btn launcher-only" data-panel="launcher" onclick="switchPanel('launcher')">
+            <span class="sb-icon">&#128241;</span><span>SHELL</span>
           </button>
         </nav>
 
@@ -318,6 +326,63 @@
                   <button id="pinClear" class="deny-btn">CLEAR PIN</button>
                 </div>
                 <div class="ft-status" id="pinStatus" data-state="idle">PIN: NOT SET</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ SHELL (Electron only) ============ -->
+        <div class="panel" id="panel-launcher">
+          <div class="panel-scroll">
+            <header class="panel-heading"><span>DESKTOP SHELL</span><h1>System control</h1><p>Launcher controls exposed inside the HUD. Available only when running in the desktop app.</p></header>
+
+            <div class="shell-row">
+              <button id="launcherToggle" class="approve-btn">START FRIDAY</button>
+              <span class="shell-status" id="launcherServerStatus">STOPPED</span>
+            </div>
+
+            <div class="dash-gauges shell-gauges">
+              <div class="gauge-card">
+                <div class="gc-header"><span class="gc-title">CPU</span><span class="gc-sub" id="shellCpuSub">--</span></div>
+                <div class="gc-value" id="shellCpu">--</div>
+                <div class="gc-bar"><div class="gc-fill" id="shellCpuFill"></div></div>
+              </div>
+              <div class="gauge-card">
+                <div class="gc-header"><span class="gc-title">MEM</span><span class="gc-sub" id="shellMemSub">--</span></div>
+                <div class="gc-value" id="shellMem">--</div>
+                <div class="gc-bar"><div class="gc-fill" id="shellMemFill"></div></div>
+              </div>
+            </div>
+
+            <div class="shell-block">
+              <div class="shell-block-title">HOST</div>
+              <div class="shell-kv">
+                <span><b>CPU MODEL</b><i id="shellCpuModel">--</i></span>
+                <span><b>CORES</b><i id="shellCores">--</i></span>
+                <span><b>HOSTNAME</b><i id="shellHostname">--</i></span>
+                <span><b>RAM</b><i id="shellRam">--</i></span>
+                <span><b>UPTIME</b><i id="shellUptime">--</i></span>
+              </div>
+            </div>
+
+            <div class="shell-block">
+              <div class="shell-block-title">DIAG LOGS</div>
+              <div class="shell-logs" id="shellLogs"></div>
+              <div class="shell-actions">
+                <button class="deny-btn" id="shellClearLogs">CLEAR</button>
+              </div>
+            </div>
+
+            <div class="shell-block">
+              <div class="shell-block-title">ANDROID PAIRING</div>
+              <div class="shell-qr">
+                <img id="shellQr" alt="Pairing QR" />
+              </div>
+              <div class="shell-pair-info">
+                <span><b>URI</b><i id="shellPairUri">--</i></span>
+              </div>
+              <div class="shell-actions">
+                <button class="approve-btn" id="shellRefreshPairing">REFRESH TOKEN</button>
               </div>
             </div>
           </div>

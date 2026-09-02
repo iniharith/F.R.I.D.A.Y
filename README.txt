@@ -29,6 +29,9 @@ SETUP AT HOME - NO INTERNET NEEDED
  Windows command HUD: dist-launcher\FRIDAY-HUD.exe
    Keep the EXE in dist-launcher beside this kit; it is a secure companion
    launcher and uses this folder's models and .venv.
+   It starts the backend and loads the SAME HUD the browser opens, with an
+   added SHELL panel for Start/Stop, CPU/MEM gauges, DIAG logs and Android
+   QR pairing. Chat is synchronized across browser, desktop and Android.
  Stop: close the console window (Ctrl+C first is cleaner).
 
   OPTIONAL LARGE-AGENT REASONING (OPENROUTER)
@@ -201,8 +204,12 @@ TASK EXECUTION
 --------------------------------------------------------------------
  Safe actions run immediately:
   * Open approved apps: Chrome, Edge, Firefox, Notepad, Calculator,
-    Explorer, PowerShell, Terminal, VS Code, Spotify, Steam and others.
+    Explorer, PowerShell, Terminal, VS Code, Spotify, Steam, Word, Excel,
+    PowerPoint, Outlook, OneNote, Discord, Telegram, WhatsApp, Minecraft,
+    Epic, Brave and others.
   * Open approved websites or a complete http/https address.
+  * Run an explicit script file (.py, .ps1, .bat, .cmd) with a short time
+    limit.
   * Search the web and check weather (internet required).
   * Set persistent timers/reminders and list pending reminders.
   * Raise/lower/mute volume, take screenshots, search common folders.

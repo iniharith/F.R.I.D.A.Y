@@ -37,11 +37,14 @@ failover for cloud reasoning.
 - Offline Kokoro neural speech using the `bf_isabella` voice
 - Wake-word operation, interruption, mute, and manual stop controls
 - Persistent semantic memory, session recall, and response-style learning
-- Local task tools for files, applications, websites, reminders, shell tasks,
-  Git operations, screenshots, weather, and web search
+- Local task tools for files, applications, websites, reminders, shell and
+  script tasks (Python, PowerShell, batch), Git operations, screenshots,
+  weather, and web search
 - Multi-step tool loops, bounded parallel calls, procedural skills, and
   depth-limited subagents
-- FastAPI/WebSocket backend with a browser HUD and Electron launcher
+- One unified FastAPI/WebSocket HUD used by the browser and the Electron
+  launcher; the desktop app embeds the same HUD and adds a SHELL panel for
+  start/stop, live CPU/MEM gauges, DIAG logs, and Android QR pairing
 - Android command link for devices on the same trusted network
 - Optional OpenRouter reasoning with automatic Hermes Portal failover
 
@@ -257,6 +260,15 @@ BUILD-HUD.bat
 The script runs `npm ci` and Electron Builder. Its portable output is written
 to `dist-launcher/FRIDAY-HUD.exe`, which is intentionally not tracked by Git.
 Use `DEV-HUD.bat` to run the Electron launcher in development mode.
+
+The launcher starts the backend and then loads the **same HUD the browser
+opens** at `http://127.0.0.1:8000`, so there is a single UI. When running
+inside Electron, the HUD adds a small frameless-window top bar (minimize /
+maximize / close) and a **SHELL** panel exposing launcher-only features:
+a Start/Stop button, live CPU/MEM gauges and host details, a DIAG log viewer,
+and Android pairing QR with token refresh. Chat is synchronized across the
+browser, the launcher window, and the Android app — the backend replays recent
+history to any client on connect.
 
 ## Tests
 

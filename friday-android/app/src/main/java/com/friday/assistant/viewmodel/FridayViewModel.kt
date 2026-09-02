@@ -11,6 +11,7 @@ import com.friday.assistant.audio.AudioPlayer
 import com.friday.assistant.audio.MicRecorder
 import com.friday.assistant.network.FridayMessage
 import com.friday.assistant.network.FridayWebSocket
+import com.google.gson.JsonArray
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -153,6 +154,25 @@ class FridayViewModel(application: Application) : AndroidViewModel(application) 
     private fun handleMessage(msg: FridayMessage) {
         when (msg.type) {
             "state" -> _ui.update { it.copy(state = msg.value ?: "idle", assistantState = msg.value ?: "idle") }
+            "history" -> {
+                val items = msg.items?.asJsonArray ?: JsonArray()
+                val bubbles = items.mapNotNull { el ->
+                    val obj = el.asJsonObject
+                    val type = obj.get("type")?.asString ?: return@mapNotNull null
+                    val text = obj.get("text")?.asString ?: return@mapNotNull null
+                    when (type) {
+                        "user" -> ChatBubble(true, text)
+                        "assistant" -> ChatBubble(
+                            false,
+                            text,
+                            ((obj.get("timestamp")?.asDouble ?: (System.currentTimeMillis() / 1000.0)) * 1000).toLong(),
+                            obj.get("response_id")?.asString ?: "",
+                        )
+                        else -> null
+                    }
+                }
+                _ui.update { it.copy(chatLog = bubbles, partialText = "") }
+            }
             "mic" -> _ui.update { it.copy(micActive = msg.active == true) }
             "system_snapshot" -> _ui.update {
                 it.copy(
