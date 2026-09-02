@@ -282,6 +282,7 @@ body {
 .icv { font-family: var(--mn); font-size: 9px; color: var(--tx); }
 .ic-row input[type="number"],
 .ic-row input[type="text"],
+.ic-row input[type="password"],
 .ic-row select {
   width: 100px; padding: 4px 6px;
   background: rgba(255,68,68,0.03);
@@ -290,6 +291,14 @@ body {
   outline: none; transition: border-color 0.2s;
 }
 #setCloudModel { width: 180px; }
+.pairing-setup { display: flex; gap: 12px; align-items: center; padding: 6px 0 10px; }
+.pairing-qr { width: 112px; height: 112px; padding: 5px; border-radius: 4px; background: var(--tx); image-rendering: pixelated; }
+.pairing-copy { display: flex; flex: 1; flex-direction: column; gap: 4px; color: var(--dm); font: 8px/1.4 var(--mn); }
+.pairing-copy strong { color: var(--red); font: 10px var(--hud); letter-spacing: .16em; }
+.pairing-copy code { align-self: flex-start; margin-top: 3px; padding: 3px 7px; color: var(--signal); border: 1px solid rgba(216,179,106,.3); border-radius: 3px; }
+.manual-pairing { padding: 7px 0; border-top: 1px solid var(--bdr); }
+.manual-pairing summary { cursor: pointer; color: var(--txd); font: 8px var(--mn); letter-spacing: .08em; }
+.manual-pairing p { padding: 6px 0 2px; color: var(--dm); font: 8px/1.4 var(--mn); }
 .setting-help { color: var(--dm); font: 8px/1.5 var(--mn); padding: 3px 0 7px 68px; }
 .ic-row input:focus, .ic-row select:focus { border-color: var(--red); }
 .ic-row select option { background: var(--bg); }

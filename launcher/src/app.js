@@ -177,6 +177,13 @@ function handleWSMessage(msg) {
       if (memStatus) memStatus.textContent = `${facts}`;
       break;
     }
+    case 'mode': {
+      const selected = msg.selected_mode || msg.effective_mode || 'local';
+      syncModeSwitch(selected);
+      fridaySettings = Object.assign({}, fridaySettings, { reasoningMode: selected });
+      updateConfiguredModelDisplay(fridaySettings);
+      break;
+    }
     case 'memory_list': {
       renderMemory(msg.facts || []);
       break;
@@ -601,7 +608,25 @@ function sendWs(type) {
 
 // ===== SETTINGS =====
 async function loadSettings() {
-  try { fridaySettings = await ipcRenderer.invoke('get-settings'); applySettingsToUI(fridaySettings); } catch {}
+  try {
+    fridaySettings = await ipcRenderer.invoke('get-settings');
+    applySettingsToUI(fridaySettings);
+    await loadPairingInfo();
+  } catch {}
+}
+
+async function loadPairingInfo() {
+  const qr = document.getElementById('pairingQr');
+  const address = document.getElementById('pairingAddress');
+  try {
+    const pairing = await ipcRenderer.invoke('get-pairing-info');
+    if (qr) qr.src = pairing.qrDataUrl;
+    if (address) address.textContent = `${pairing.host}:${pairing.port}`;
+    const token = document.getElementById('setPairingToken');
+    if (token) token.value = pairing.token;
+  } catch {
+    if (address) address.textContent = 'Pairing information unavailable';
+  }
 }
 
 function applySettingsToUI(s) {
@@ -654,6 +679,7 @@ async function saveSettings() {
   await ipcRenderer.invoke('save-settings', settings);
   fridaySettings = settings;
   updateConfiguredModelDisplay(settings);
+  await loadPairingInfo();
   addLogEntry({ level: 'info', message: 'Configuration saved.', timestamp: Date.now() });
 }
 

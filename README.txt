@@ -124,8 +124,11 @@ HOW TO USE FRIDAY
      Wi-Fi network.
   2. Start FRIDAY on Windows.
   3. Open CONFIG -> NETWORK in the Windows HUD.
-  4. Note the computer LAN IP, port and Pairing token.
-  5. Enter those values in the FRIDAY Link Android app and connect.
+  4. Scan the QR code with the phone camera.
+  5. Tap the F.R.I.D.A.Y. link. The app saves the protected connection
+     details and connects automatically. Use Manual setup only if needed.
+  6. The mobile HUD shows system/model status and provides laptop mic
+     mute/unmute, Local/OpenRouter mode and safe runtime tuning controls.
 
  Memory and preferences:
   1. Say "Remember that ..." to save an important fact explicitly.
@@ -236,9 +239,10 @@ TASK EXECUTION
 
  Android pairing:
   1. Start FRIDAY from the Windows HUD.
-  2. Open CONFIG -> NETWORK and copy the Pairing token.
-  3. In Android FRIDAY Link, enter the laptop LAN IP, port and token.
-  4. Keep both devices on the same trusted Wi-Fi network.
+  2. Open CONFIG -> NETWORK and scan the displayed QR code.
+  3. Tap the F.R.I.D.A.Y. link to save and connect automatically.
+  4. Keep both devices on the same trusted Wi-Fi network. Manual IP, port
+     and token entry remains available as a fallback.
 
 --------------------------------------------------------------------
  LOCAL MODEL BUNDLE

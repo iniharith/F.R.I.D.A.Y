@@ -3,6 +3,8 @@ const path = require('path');
 const { spawn, exec } = require('child_process');
 const fs = require('fs');
 const crypto = require('crypto');
+const os = require('os');
+const QRCode = require('qrcode');
 
 app.disableHardwareAcceleration();
 
@@ -32,6 +34,20 @@ function getFridayRoot() {
 
 function getSettingsPath() {
   return path.join(app.getPath('userData'), 'launcher-settings.json');
+}
+
+function getLanAddress() {
+  const addresses = [];
+  for (const entries of Object.values(os.networkInterfaces())) {
+    for (const entry of entries || []) {
+      if (!entry.internal && (entry.family === 'IPv4' || entry.family === 4)) {
+        addresses.push(entry.address);
+      }
+    }
+  }
+  return addresses.find((address) => /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(address))
+    || addresses[0]
+    || '127.0.0.1';
 }
 
 function defaultSettings() {
@@ -235,6 +251,21 @@ ipcMain.on('window-close', () => mainWindow?.close());
 
 ipcMain.handle('get-settings', () => {
   return readSettings();
+});
+
+ipcMain.handle('get-pairing-info', async () => {
+  const settings = readSettings();
+  const host = getLanAddress();
+  const port = Number(settings.port) || FRIDAY_PORT;
+  const token = settings.pairingToken;
+  const uri = `friday://pair?host=${encodeURIComponent(host)}&port=${port}&token=${encodeURIComponent(token)}`;
+  const qrDataUrl = await QRCode.toDataURL(uri, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    width: 220,
+    color: { dark: '#071017', light: '#E8F6FF' },
+  });
+  return { host, port, token, uri, qrDataUrl };
 });
 
 ipcMain.handle('save-settings', (event, settings) => {

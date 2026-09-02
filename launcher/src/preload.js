@@ -9,7 +9,7 @@ const sendChannels = new Set([
   'open-friday-hud',
   'open-folder',
 ]);
-const invokeChannels = new Set(['get-settings', 'save-settings', 'get-system-info']);
+const invokeChannels = new Set(['get-settings', 'get-pairing-info', 'save-settings', 'get-system-info']);
 const receiveChannels = new Set(['log-message', 'server-status']);
 
 contextBridge.exposeInMainWorld('friday', {

@@ -50,7 +50,7 @@ import java.util.*
 fun ChatScreen(
     ui: FridayUiState,
     onSend: (String) -> Unit,
-    onToggleMic: () -> Unit,
+    onSetMicActive: (Boolean) -> Unit,
     onStop: () -> Unit,
     onToggleRecord: () -> Unit,
     onApprove: () -> Unit,
@@ -59,6 +59,7 @@ fun ChatScreen(
     onDismissGuardian: () -> Unit,
     onFeedback: (String, Int) -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenDashboard: () -> Unit,
 ) {
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -110,6 +111,9 @@ fun ChatScreen(
                         fontFamily = FontFamily.Monospace,
                         modifier = Modifier.padding(end = 8.dp)
                     )
+                    TextButton(onClick = onOpenDashboard) {
+                        Text("HUD", color = Cyan, fontSize = 11.sp)
+                    }
                     IconButton(onClick = onOpenSettings) {
                         Icon(Icons.Outlined.Settings, "Settings", tint = Dim)
                     }
@@ -128,7 +132,17 @@ fun ChatScreen(
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                item { StatusTile("LAPTOP MIC", if (ui.micActive) "ACTIVE" else "MUTED", if (ui.micActive) Cyan else Dim, onToggleMic) }
+                item {
+                    Button(
+                        onClick = { onSetMicActive(!ui.micActive) },
+                        enabled = ui.connected,
+                        shape = CutCornerShape(topEnd = 10.dp, bottomStart = 6.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (ui.micActive) Danger else Success,
+                            contentColor = Bg,
+                        ),
+                    ) { Text(if (ui.micActive) "MUTE LAPTOP MIC" else "UNMUTE LAPTOP MIC", fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                }
                 item { StatusTile("MEMORY", "${ui.memoryCount} FACTS", Cyan) }
                 item { StatusTile("GUARDIAN", if (ui.guardianMessage == null) "NOMINAL" else "ALERT", if (ui.guardianMessage == null) Success else Amber) }
                 item { StatusTile("VISION", if (ui.visionActive) "ACTIVE" else "OFFLINE", if (ui.visionActive) Danger else Dim) }

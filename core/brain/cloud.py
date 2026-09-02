@@ -45,6 +45,14 @@ class OpenRouterClient:
         self._runtime_mode = mode if mode in {"local", "openrouter"} else None
 
     @property
+    def selected_mode(self) -> str:
+        return self._runtime_mode or config.REASONING_MODE
+
+    @property
+    def available(self) -> bool:
+        return bool(self.api_key or self.fallback_api_key)
+
+    @property
     def fallback_ready(self) -> bool:
         return (
             config.CLOUD_FALLBACK_ENABLED
@@ -54,7 +62,7 @@ class OpenRouterClient:
 
     @property
     def enabled(self) -> bool:
-        mode = self._runtime_mode or config.REASONING_MODE
+        mode = self.selected_mode
         if self._explicit_api_key:
             return True
         return mode == "openrouter" and bool(self.api_key or self.fallback_api_key)
@@ -143,7 +151,8 @@ class OpenRouterClient:
         payload: dict = {
             "model": model,
             "messages": self.prepare_messages(messages),
-            "temperature": 0.2,
+            "temperature": config.GEN_TEMPERATURE,
+            "top_p": config.GEN_TOP_P,
             "max_tokens": config.OPENROUTER_MAX_TOKENS,
         }
         if config.OPENROUTER_REASONING_ENABLED:

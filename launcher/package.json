@@ -10,7 +10,9 @@
   },
   "author": "Friday Kit",
   "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
   "devDependencies": {
     "electron": "^44.0.0",
     "electron-builder": "^26.15.3"

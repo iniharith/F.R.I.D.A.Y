@@ -356,10 +356,24 @@
               </div>
               <div class="info-card"><div class="ic-header"><span class="ic-icon">&#128246;</span><span class="ic-title">NETWORK</span></div>
                 <div class="ic-body">
-                  <div class="ic-row"><span class="icl">Host</span><span class="icr"></span><span class="icv"><input type="text" id="setHost" value="127.0.0.1"/></span></div>
-                   <div class="ic-row"><span class="icl">Port</span><span class="icr"></span><span class="icv"><input type="number" id="setPort" value="8000" min="1024" max="65535"/></span></div>
-                   <div class="ic-row"><span class="icl">Pairing</span><span class="icr"></span><span class="icv"><input type="text" id="setPairingToken" value="" readonly title="Enter this token in the Android FRIDAY Link settings"/></span></div>
-                   <div class="ic-row"><span class="icl">Auto-start</span><span class="icr"></span><span class="icv"><div class="tog-wrap"><input type="checkbox" id="setAutoStart"/><label class="tog" for="setAutoStart"></label></div></span></div>
+                  <div class="pairing-setup">
+                    <img id="pairingQr" class="pairing-qr" alt="Android pairing QR code"/>
+                    <div class="pairing-copy">
+                      <strong>PAIR ANDROID</strong>
+                      <span>1. Start FRIDAY on this PC.</span>
+                      <span>2. Scan this code with your phone camera.</span>
+                      <span>3. Tap the F.R.I.D.A.Y. link. Connection details are saved automatically.</span>
+                      <code id="pairingAddress">Finding LAN address...</code>
+                    </div>
+                  </div>
+                  <details class="manual-pairing">
+                    <summary>Manual connection fallback</summary>
+                    <p>Only use these fields if your camera cannot open the QR link.</p>
+                   <div class="ic-row"><span class="icl">Host</span><span class="icr"></span><span class="icv"><input type="text" id="setHost" value="127.0.0.1"/></span></div>
+                    <div class="ic-row"><span class="icl">Port</span><span class="icr"></span><span class="icv"><input type="number" id="setPort" value="8000" min="1024" max="65535"/></span></div>
+                    <div class="ic-row"><span class="icl">Token</span><span class="icr"></span><span class="icv"><input type="password" id="setPairingToken" value="" readonly title="Manual Android pairing token"/></span></div>
+                  </details>
+                    <div class="ic-row"><span class="icl">Auto-start</span><span class="icr"></span><span class="icv"><div class="tog-wrap"><input type="checkbox" id="setAutoStart"/><label class="tog" for="setAutoStart"></label></div></span></div>
                 </div>
               </div>
             </div>

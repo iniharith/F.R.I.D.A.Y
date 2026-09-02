@@ -23,6 +23,27 @@ data class FridayMessage(
     val source: String? = null,
     val response_id: String? = null,
     val timestamp: Double? = null,
+    val assistant_state: String? = null,
+    val model_state: String? = null,
+    val selected_mode: String? = null,
+    val effective_mode: String? = null,
+    val cloud_available: Boolean? = null,
+    val cloud_model: String? = null,
+    val local_model: String? = null,
+    val mic_active: Boolean? = null,
+    val cpu_percent: Double? = null,
+    val ram_percent: Double? = null,
+    val disk_percent: Double? = null,
+    val uptime_seconds: Double? = null,
+    val gpu_available: Boolean? = null,
+    val gpu_utilization_percent: Double? = null,
+    val gpu_temperature_c: Double? = null,
+    val gpu_memory_used_mb: Double? = null,
+    val gpu_memory_total_mb: Double? = null,
+    val temperature: Double? = null,
+    val top_p: Double? = null,
+    val max_new_tokens: Int? = null,
+    val context_turns: Int? = null,
 )
 
 class FridayWebSocket(
@@ -106,7 +127,17 @@ class FridayWebSocket(
     }
 
     fun sendChat(text: String) = send("chat", mapOf("text" to text))
-    fun sendMicToggle() = send("mic_toggle")
+    fun sendSystemSnapshotGet() = send("system_snapshot_get")
+    fun sendMicSet(active: Boolean) = send("mic_set", mapOf("active" to active))
+    fun sendMode(mode: String) = send("set_mode", mapOf("mode" to mode))
+    fun sendTuningGet() = send("tuning_get")
+    fun sendTuning(temperature: Double, topP: Double, maxNewTokens: Int, contextTurns: Int) =
+        send("tuning_set", mapOf(
+            "temperature" to temperature,
+            "top_p" to topP,
+            "max_new_tokens" to maxNewTokens,
+            "context_turns" to contextTurns,
+        ))
     fun sendStop() = send("stop")
     fun sendApprove(id: String) = send("tool_confirm", mapOf("id" to id))
     fun sendDeny(id: String) = send("tool_deny", mapOf("id" to id))

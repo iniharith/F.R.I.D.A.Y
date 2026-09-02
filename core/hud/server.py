@@ -144,31 +144,33 @@ async def set_setting(key: str, value, pin: str = "", conn_local: bool = True) -
 RUNTIME_SETTINGS_FILE = config.DATA_DIR / "runtime_settings.json"
 
 
-def _load_runtime_reasoning_mode() -> str | None:
+def _load_runtime_settings() -> dict:
     try:
-        payload = json.loads(
-            RUNTIME_SETTINGS_FILE.read_text(encoding="utf-8")
-        )
-        mode = str(payload.get("reasoning_mode") or "")
-        return mode if mode in {"local", "openrouter"} else None
+        payload = json.loads(RUNTIME_SETTINGS_FILE.read_text(encoding="utf-8"))
+        return payload if isinstance(payload, dict) else {}
     except Exception:
-        return None
+        return {}
 
 
-def _save_runtime_reasoning_mode(mode: str | None) -> None:
+def _save_runtime_settings(changes: dict) -> None:
     try:
-        existing = {}
-        if RUNTIME_SETTINGS_FILE.exists():
-            existing = json.loads(RUNTIME_SETTINGS_FILE.read_text(encoding="utf-8"))
-        if mode is None:
-            existing.pop("reasoning_mode", None)
-        else:
-            existing["reasoning_mode"] = mode
+        existing = _load_runtime_settings()
+        existing.update(changes)
         RUNTIME_SETTINGS_FILE.write_text(
             json.dumps(existing, indent=2), encoding="utf-8"
         )
     except Exception:
         pass
+
+
+def _load_runtime_reasoning_mode() -> str | None:
+    mode = str(_load_runtime_settings().get("reasoning_mode") or "")
+    return mode if mode in {"local", "openrouter"} else None
+
+
+def _save_runtime_reasoning_mode(mode: str | None) -> None:
+    if mode is not None:
+        _save_runtime_settings({"reasoning_mode": mode})
 
 
 def apply_runtime_reasoning_mode() -> str:
@@ -178,6 +180,63 @@ def apply_runtime_reasoning_mode() -> str:
         openrouter_client.set_mode(persisted)
         return persisted
     return config.REASONING_MODE
+
+
+def _mode_snapshot() -> dict:
+    return {
+        "selected_mode": openrouter_client.selected_mode,
+        "effective_mode": "openrouter" if openrouter_client.enabled else "local",
+        "cloud_available": openrouter_client.available,
+        "cloud_model": openrouter_client.model,
+    }
+
+
+def _tuning_snapshot() -> dict:
+    return {
+        "temperature": config.GEN_TEMPERATURE,
+        "top_p": config.GEN_TOP_P,
+        "max_new_tokens": brain.max_new_tokens,
+        "context_turns": config.CONTEXT_HISTORY_TURNS,
+    }
+
+
+def _apply_runtime_tuning(values: dict, persist: bool = True) -> dict:
+    try:
+        temperature = float(values["temperature"])
+        top_p = float(values["top_p"])
+        max_new_tokens = int(values["max_new_tokens"])
+        context_turns = int(values["context_turns"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("All tuning values are required.") from exc
+    if not 0.0 <= temperature <= 2.0:
+        raise ValueError("Temperature must be between 0 and 2.")
+    if not 0.1 <= top_p <= 1.0:
+        raise ValueError("Top-p must be between 0.1 and 1.")
+    if not 64 <= max_new_tokens <= 2048:
+        raise ValueError("Max output tokens must be between 64 and 2048.")
+    if not 1 <= context_turns <= 30:
+        raise ValueError("Context turns must be between 1 and 30.")
+
+    config.GEN_TEMPERATURE = temperature
+    config.GEN_TOP_P = top_p
+    config.MAX_NEW_TOKENS = max_new_tokens
+    config.OPENROUTER_MAX_TOKENS = max_new_tokens
+    config.CONTEXT_HISTORY_TURNS = context_turns
+    brain.max_new_tokens = max_new_tokens
+    snapshot = _tuning_snapshot()
+    if persist:
+        _save_runtime_settings({"tuning": snapshot})
+    return snapshot
+
+
+def apply_runtime_tuning() -> dict:
+    saved = _load_runtime_settings().get("tuning")
+    if isinstance(saved, dict):
+        try:
+            return _apply_runtime_tuning(saved, persist=False)
+        except ValueError:
+            pass
+    return _tuning_snapshot()
 
 
 async def broadcast(type_: str, **data) -> None:
@@ -500,6 +559,83 @@ def _get_gpu_temp() -> float | None:
     return None
 
 
+def _get_gpu_snapshot() -> dict:
+    empty = {
+        "gpu_available": False,
+        "gpu_utilization_percent": None,
+        "gpu_temperature_c": None,
+        "gpu_memory_used_mb": None,
+        "gpu_memory_total_mb": None,
+    }
+    try:
+        result = subprocess.run(
+            [
+                "nvidia-smi",
+                "--query-gpu=utilization.gpu,temperature.gpu,memory.used,memory.total",
+                "--format=csv,noheader,nounits",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        if result.returncode != 0:
+            return empty
+        values = [part.strip() for part in result.stdout.splitlines()[0].split(",")]
+        if len(values) != 4:
+            return empty
+        utilization, temperature, memory_used, memory_total = map(float, values)
+        return {
+            "gpu_available": True,
+            "gpu_utilization_percent": utilization,
+            "gpu_temperature_c": temperature,
+            "gpu_memory_used_mb": memory_used,
+            "gpu_memory_total_mb": memory_total,
+        }
+    except Exception:
+        return empty
+
+
+def _system_snapshot_sync() -> dict:
+    import psutil
+
+    ram = psutil.virtual_memory()
+    disk = psutil.disk_usage(str(config.DATA_DIR))
+    stats = memory_store.stats()
+    return {
+        "timestamp": time.time(),
+        "assistant_state": assistant_state,
+        "model_state": model_state,
+        **_mode_snapshot(),
+        "local_model": config.MODEL_FILE.name if config.MODEL_FILE else None,
+        "mic_active": listener.enabled if listener is not None else False,
+        "memory_facts": int(stats.get("facts", 0)),
+        "memory_episodes": int(stats.get("episodes", 0)),
+        "cpu_percent": float(psutil.cpu_percent(interval=0.1)),
+        "ram_percent": float(ram.percent),
+        "disk_percent": float(disk.percent),
+        "uptime_seconds": max(0.0, time.time() - psutil.boot_time()),
+        **_get_gpu_snapshot(),
+    }
+
+
+async def send_system_snapshot(ws: WebSocket | None = None) -> None:
+    try:
+        snapshot = await asyncio.to_thread(_system_snapshot_sync)
+    except Exception:
+        return
+    payload = json.dumps({"type": "system_snapshot", **snapshot})
+    if ws is not None:
+        await ws.send_text(payload)
+    else:
+        await broadcast("system_snapshot", **snapshot)
+
+
+async def _telemetry_loop() -> None:
+    while True:
+        await send_system_snapshot()
+        await asyncio.sleep(5.0)
+
+
 async def _guardian_loop() -> None:
     import psutil
     from core import config as _cfg
@@ -607,7 +743,9 @@ async def lifespan(app: FastAPI):
     global event_loop, listener, scheduler, model_state, model_error, background_supervisor_task
     event_loop = asyncio.get_running_loop()
     mode = apply_runtime_reasoning_mode()
+    tuning = apply_runtime_tuning()
     print(f"[FRIDAY] reasoning mode: {mode}")
+    print(f"[FRIDAY] runtime tuning: {tuning}")
     await asyncio.to_thread(memory_store.start_session)
     await asyncio.to_thread(experience_store.start)
     scheduler = ReminderScheduler(notify_reminder)
@@ -621,6 +759,7 @@ async def lifespan(app: FastAPI):
     background_supervisor_task = asyncio.create_task(_background_supervisor_loop())
     listener = VoiceListener(voice_emit, is_interruptible, interrupt_current)
     listener.start()
+    _telemetry_task = asyncio.create_task(_telemetry_loop())
 
     def _train_emit(payload: dict) -> None:
         if event_loop is not None and event_loop.is_running():
@@ -658,6 +797,11 @@ async def lifespan(app: FastAPI):
     yield
     listener.stop()
     interrupt_current()
+    _telemetry_task.cancel()
+    try:
+        await _telemetry_task
+    except asyncio.CancelledError:
+        pass
     if background_supervisor_task is not None:
         background_supervisor_task.cancel()
         try:
@@ -701,6 +845,7 @@ async def health():
         "status": "ok" if model_state == "ready" else model_state,
         "state": assistant_state,
         "reasoning": "openrouter" if openrouter_client.enabled else "local",
+        **_mode_snapshot(),
         "cloud_model": openrouter_client.model if openrouter_client.enabled else None,
         "local_model": config.MODEL_FILE.name if config.MODEL_FILE else None,
         "model_backend": "llama.cpp" if config.MODEL_IS_GGUF else "transformers",
@@ -723,7 +868,9 @@ async def set_reasoning_mode(request: Request):
         raise HTTPException(status_code=422, detail="mode must be 'local' or 'openrouter'")
     openrouter_client.set_mode(cleaned)
     _save_runtime_reasoning_mode(cleaned)
-    return JSONResponse({"reasoning": "openrouter" if openrouter_client.enabled else "local"})
+    snapshot = _mode_snapshot()
+    await broadcast("mode", **snapshot)
+    return JSONResponse({"reasoning": snapshot["effective_mode"], **snapshot})
 
 
 @app.get("/manifest.json")
@@ -1300,6 +1447,9 @@ async def channel(ws: WebSocket):
     await ws.send_text(json.dumps({"type": "voice_status", "text": voice_status}))
     await ws.send_text(json.dumps({"type": "settings", **_public_settings()}))
     await ws.send_text(json.dumps({"type": "memory_stats", **memory_store.stats()}))
+    await ws.send_text(json.dumps({"type": "mode", **_mode_snapshot()}))
+    await ws.send_text(json.dumps({"type": "tuning", **_tuning_snapshot()}))
+    await send_system_snapshot(ws)
     try:
         while True:
             msg = json.loads(await ws.receive_text())
@@ -1312,6 +1462,16 @@ async def channel(ws: WebSocket):
                 track(process_message(chat_text, "typed", image_path=img))
             elif kind == "mic_toggle" and listener is not None:
                 listener.toggle()
+            elif kind == "mic_set" and listener is not None:
+                active = msg.get("active")
+                if isinstance(active, bool):
+                    listener.set_enabled(active)
+                    await send_system_snapshot()
+                else:
+                    await ws.send_text(json.dumps({
+                        "type": "settings_error",
+                        "text": "Microphone state must be true or false.",
+                    }))
             elif kind == "stop":
                 interrupt_current()
                 await set_state("idle")
@@ -1356,21 +1516,33 @@ async def channel(ws: WebSocket):
                         ts,
                     )
                     await ws.send_text(json.dumps({"type": "feedback_saved", "saved": saved}))
+            elif kind == "system_snapshot_get":
+                await send_system_snapshot(ws)
+            elif kind == "tuning_get":
+                await ws.send_text(json.dumps({"type": "tuning", **_tuning_snapshot()}))
+            elif kind == "tuning_set":
+                try:
+                    tuning = _apply_runtime_tuning(msg)
+                except ValueError as exc:
+                    await ws.send_text(json.dumps({
+                        "type": "tuning_error",
+                        "text": str(exc),
+                    }))
+                else:
+                    await broadcast("tuning", **tuning)
             elif kind == "set_mode":
                 valid = {"local", "openrouter"}
                 cleaned = str(msg.get("mode") or "").strip().lower()
                 if cleaned in valid:
                     openrouter_client.set_mode(cleaned)
                     _save_runtime_reasoning_mode(cleaned)
-                    await ws.send_text(
-                        json.dumps(
-                            {
-                                "type": "mode",
-                                "reasoning": "openrouter" if openrouter_client.enabled else "local",
-                                "cloud_model": openrouter_client.model,
-                            }
-                        )
-                    )
+                    await broadcast("mode", **_mode_snapshot())
+                    await send_system_snapshot()
+                else:
+                    await ws.send_text(json.dumps({
+                        "type": "mode_error",
+                        "text": "Mode must be local or openrouter.",
+                    }))
     except Exception:
         pass
     finally:

@@ -47,6 +47,27 @@ data class FridayUiState(
     val host: String = "192.168.1.1",
     val port: String = "8000",
     val token: String = "",
+    val pairingStatus: String? = null,
+    val assistantState: String = "idle",
+    val modelState: String = "unknown",
+    val selectedMode: String = "local",
+    val effectiveMode: String = "local",
+    val cloudAvailable: Boolean = false,
+    val cloudModel: String = "",
+    val localModel: String = "",
+    val cpuPercent: Double = 0.0,
+    val ramPercent: Double = 0.0,
+    val diskPercent: Double = 0.0,
+    val uptimeSeconds: Double = 0.0,
+    val gpuAvailable: Boolean = false,
+    val gpuUtilizationPercent: Double = 0.0,
+    val gpuTemperatureC: Double = 0.0,
+    val gpuMemoryUsedMb: Double = 0.0,
+    val gpuMemoryTotalMb: Double = 0.0,
+    val temperature: Double = 0.7,
+    val topP: Double = 0.9,
+    val maxNewTokens: Int = 512,
+    val contextTurns: Int = 10,
 )
 
 class FridayViewModel(application: Application) : AndroidViewModel(application) {
@@ -92,13 +113,32 @@ class FridayViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun reconnect(host: String, port: String, token: String) {
         ws?.disconnect()
+        if (host.isBlank() || host == "0.0.0.0" || token.isBlank()) {
+            ws = null
+            _ui.update {
+                it.copy(
+                    connected = false,
+                    errorMessage = null,
+                    pairingStatus = "Scan the QR code in Windows CONFIG -> NETWORK to connect.",
+                )
+            }
+            return
+        }
         ws = FridayWebSocket(
             host = host,
             port = port.toIntOrNull() ?: 8000,
             token = token,
             onMessage = ::handleMessage,
             onConnected = {
-                _ui.update { it.copy(connected = true) }
+                _ui.update {
+                    it.copy(
+                        connected = true,
+                        pairingStatus = "Connected to $host:$port",
+                        errorMessage = null,
+                    )
+                }
+                ws?.sendSystemSnapshotGet()
+                ws?.sendTuningGet()
             },
             onDisconnected = {
                 _ui.update { it.copy(connected = false) }
@@ -112,8 +152,49 @@ class FridayViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun handleMessage(msg: FridayMessage) {
         when (msg.type) {
-            "state" -> _ui.update { it.copy(state = msg.value ?: "idle") }
+            "state" -> _ui.update { it.copy(state = msg.value ?: "idle", assistantState = msg.value ?: "idle") }
             "mic" -> _ui.update { it.copy(micActive = msg.active == true) }
+            "system_snapshot" -> _ui.update {
+                it.copy(
+                    state = msg.assistant_state ?: it.state,
+                    assistantState = msg.assistant_state ?: it.assistantState,
+                    modelState = msg.model_state ?: it.modelState,
+                    selectedMode = msg.selected_mode ?: it.selectedMode,
+                    effectiveMode = msg.effective_mode ?: it.effectiveMode,
+                    cloudAvailable = msg.cloud_available ?: it.cloudAvailable,
+                    cloudModel = msg.cloud_model.orEmpty(),
+                    localModel = msg.local_model.orEmpty(),
+                    micActive = msg.mic_active ?: it.micActive,
+                    cpuPercent = msg.cpu_percent ?: it.cpuPercent,
+                    ramPercent = msg.ram_percent ?: it.ramPercent,
+                    diskPercent = msg.disk_percent ?: it.diskPercent,
+                    uptimeSeconds = msg.uptime_seconds ?: it.uptimeSeconds,
+                    gpuAvailable = msg.gpu_available ?: it.gpuAvailable,
+                    gpuUtilizationPercent = msg.gpu_utilization_percent ?: it.gpuUtilizationPercent,
+                    gpuTemperatureC = msg.gpu_temperature_c ?: it.gpuTemperatureC,
+                    gpuMemoryUsedMb = msg.gpu_memory_used_mb ?: it.gpuMemoryUsedMb,
+                    gpuMemoryTotalMb = msg.gpu_memory_total_mb ?: it.gpuMemoryTotalMb,
+                )
+            }
+            "mode" -> _ui.update {
+                it.copy(
+                    selectedMode = msg.selected_mode ?: it.selectedMode,
+                    effectiveMode = msg.effective_mode ?: it.effectiveMode,
+                    cloudAvailable = msg.cloud_available ?: it.cloudAvailable,
+                    cloudModel = msg.cloud_model.orEmpty(),
+                )
+            }
+            "tuning" -> _ui.update {
+                it.copy(
+                    temperature = msg.temperature ?: it.temperature,
+                    topP = msg.top_p ?: it.topP,
+                    maxNewTokens = msg.max_new_tokens ?: it.maxNewTokens,
+                    contextTurns = msg.context_turns ?: it.contextTurns,
+                )
+            }
+            "tuning_error", "mode_error" -> _ui.update {
+                it.copy(errorMessage = msg.text ?: "Backend rejected the setting")
+            }
             "assistant" -> {
                 val text = msg.text.orEmpty()
                 if (text.isBlank()) return
@@ -188,8 +269,27 @@ class FridayViewModel(application: Application) : AndroidViewModel(application) 
         ws?.sendChat(text)
     }
 
-    fun toggleMic() {
-        ws?.sendMicToggle()
+    fun setMicActive(active: Boolean) {
+        if (!ui.value.connected || ui.value.micActive == active) return
+        ws?.sendMicSet(active)
+    }
+
+    fun setMode(mode: String) {
+        if (!ui.value.connected || mode !in setOf("local", "openrouter") || ui.value.selectedMode == mode) return
+        ws?.sendMode(mode)
+    }
+
+    fun setTuning(temperature: Double, topP: Double, maxNewTokens: Int, contextTurns: Int) {
+        if (!ui.value.connected || temperature !in 0.0..2.0 || topP !in 0.1..1.0 ||
+            maxNewTokens !in 64..2048 || contextTurns !in 1..30) return
+        val current = ui.value
+        if (current.temperature == temperature && current.topP == topP &&
+            current.maxNewTokens == maxNewTokens && current.contextTurns == contextTurns) return
+        ws?.sendTuning(temperature, topP, maxNewTokens, contextTurns)
+    }
+
+    fun setPairingStatus(status: String?) {
+        _ui.update { it.copy(pairingStatus = status) }
     }
 
     fun stop() {

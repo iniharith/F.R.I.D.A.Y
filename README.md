@@ -234,8 +234,15 @@ friday-android\gradlew.bat assembleDebug
 ```
 
 To connect, keep the Windows computer and phone on the same trusted Wi-Fi,
-start F.R.I.D.A.Y., open `CONFIG -> NETWORK` in the HUD, and enter the shown
-LAN IP, port, and pairing token in the Android app.
+start F.R.I.D.A.Y., and open `CONFIG -> NETWORK` in the Windows HUD. Scan the
+displayed QR code with the phone camera and tap the F.R.I.D.A.Y. link; the app
+saves the LAN address, port, and security token automatically. Manual entry is
+available only as a fallback.
+
+The Android app opens on a mobile HUD with live CPU, RAM, disk, GPU, model,
+memory, microphone, and reasoning-mode status. It also provides explicit
+laptop microphone mute/unmute, Local/OpenRouter selection, and safe runtime
+controls for temperature, top-p, output tokens, and context turns.
 
 ## Building the Electron HUD
 

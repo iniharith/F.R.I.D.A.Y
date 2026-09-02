@@ -787,6 +787,15 @@ function handle(msg) {
       if (pinStatus) { pinStatus.textContent = msg.text || "REJECTED"; pinStatus.dataset.state = "error"; }
       heard.textContent = (msg.text || "SETTINGS REJECTED").toUpperCase();
       return;
+    case "mode": {
+      const selected = msg.selected_mode || msg.effective_mode || "local";
+      const effective = msg.effective_mode || "local";
+      syncModeSwitch(selected);
+      if (tbMode) tbMode.textContent = effective.toUpperCase();
+      if (dashMode) dashMode.textContent = effective.toUpperCase();
+      if (dashReasoning) dashReasoning.textContent = effective.toUpperCase();
+      return;
+    }
     case "train_status":
       renderTrainStatus(msg);
       return;
