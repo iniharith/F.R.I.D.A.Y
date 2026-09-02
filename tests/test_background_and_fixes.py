@@ -4,7 +4,7 @@ import time
 import unittest
 from io import BytesIO
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from core.hands.agent import MANIFEST, select_tools
 from core.hands.background import BackgroundManager
@@ -144,12 +144,23 @@ class BackgroundSubagentTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIn("blocked", result.message.lower())
 
-    def test_cwd_outside_profile_is_refused(self):
+    def test_cwd_outside_profile_is_allowed(self):
         agent = TaskAgent()
-        agent.background = self.manager
+        fake_task = Mock(
+            id="12345678",
+            label="",
+            state="running",
+            output_file=str(Path(self._tmp.name) / "task.log"),
+        )
+        fake_background = Mock()
+        fake_background.start.return_value = fake_task
+        agent.background = fake_background
         result = agent._run_background("Write-Output hi", cwd=r"C:\Windows")
-        self.assertFalse(result.ok)
-        self.assertIn("user profile", result.message)
+        self.assertTrue(result.ok, result.message)
+        self.assertIn("Started background task", result.message)
+        fake_background.start.assert_called_once_with(
+            "Write-Output hi", cwd=r"C:\Windows", label=""
+        )
 
     def test_status_empty_when_no_tasks(self):
         result = self.agent._background_status()
@@ -161,7 +172,7 @@ class BackgroundSubagentTests(unittest.TestCase):
 
 
 class SelfEditSecurityTests(unittest.TestCase):
-    def test_apply_fix_cannot_touch_files_outside_user_profile(self):
+    def test_apply_fix_cannot_touch_protected_system_tree(self):
         agent = TaskAgent()
         result = agent._apply_fix("a", "b", r"C:\Windows\evil.py")
         self.assertFalse(result.ok)
@@ -184,11 +195,11 @@ class SelfEditSecurityTests(unittest.TestCase):
         self.assertFalse(result.ok)
         self.assertIn("Python", result.message)
 
-    def test_self_edit_refuses_paths_outside_user_profile(self):
+    def test_self_edit_can_read_system_paths(self):
         agent = TaskAgent()
         result = agent._self_edit(r"C:\Windows\win.ini")
-        self.assertFalse(result.ok)
-        self.assertIn("user profile", result.message)
+        self.assertTrue(result.ok)
+        self.assertIn("win.ini", result.message)
 
 
 class SystemToolTruthTests(unittest.TestCase):

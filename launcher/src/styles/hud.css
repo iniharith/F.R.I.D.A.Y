@@ -296,6 +296,9 @@ body {
 .pairing-copy { display: flex; flex: 1; flex-direction: column; gap: 4px; color: var(--dm); font: 8px/1.4 var(--mn); }
 .pairing-copy strong { color: var(--red); font: 10px var(--hud); letter-spacing: .16em; }
 .pairing-copy code { align-self: flex-start; margin-top: 3px; padding: 3px 7px; color: var(--signal); border: 1px solid rgba(216,179,106,.3); border-radius: 3px; }
+.qr-refresh { align-self: flex-start; margin-top: 6px; padding: 4px 8px; color: var(--cyb); background: transparent; border: 1px solid var(--bdr); border-radius: 3px; font: 8px var(--mn); letter-spacing: .06em; cursor: pointer; }
+.qr-refresh:hover { border-color: var(--cyb); color: var(--tx); }
+.qr-refresh:disabled { opacity: .5; cursor: default; }
 .manual-pairing { padding: 7px 0; border-top: 1px solid var(--bdr); }
 .manual-pairing summary { cursor: pointer; color: var(--txd); font: 8px var(--mn); letter-spacing: .08em; }
 .manual-pairing p { padding: 6px 0 2px; color: var(--dm); font: 8px/1.4 var(--mn); }

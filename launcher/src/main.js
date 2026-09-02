@@ -276,6 +276,24 @@ ipcMain.handle('save-settings', (event, settings) => {
   return true;
 });
 
+ipcMain.handle('refresh-pairing-token', async () => {
+  const settingsPath = getSettingsPath();
+  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+  const current = readSettings();
+  current.pairingToken = crypto.randomBytes(18).toString('base64url');
+  fs.writeFileSync(settingsPath, JSON.stringify(current, null, 2));
+  const host = getLanAddress();
+  const port = Number(current.port) || FRIDAY_PORT;
+  const uri = `friday://pair?host=${encodeURIComponent(host)}&port=${port}&token=${encodeURIComponent(current.pairingToken)}`;
+  const qrDataUrl = await QRCode.toDataURL(uri, {
+    errorCorrectionLevel: 'M',
+    margin: 1,
+    width: 220,
+    color: { dark: '#071017', light: '#E8F6FF' },
+  });
+  return { host, port, token: current.pairingToken, uri, qrDataUrl };
+});
+
 ipcMain.on('start-friday', () => startFridayBackend());
 ipcMain.on('stop-friday', () => stopFridayBackend());
 ipcMain.on('open-friday-hud', () => {

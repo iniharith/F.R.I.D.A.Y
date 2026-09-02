@@ -234,10 +234,12 @@ friday-android\gradlew.bat assembleDebug
 ```
 
 To connect, keep the Windows computer and phone on the same trusted Wi-Fi,
-start F.R.I.D.A.Y., and open `CONFIG -> NETWORK` in the Windows HUD. Scan the
-displayed QR code with the phone camera and tap the F.R.I.D.A.Y. link; the app
-saves the LAN address, port, and security token automatically. Manual entry is
-available only as a fallback.
+start F.R.I.D.A.Y., and open `CONFIG -> NETWORK` in the Windows HUD. In the app
+tap `SETTINGS -> SCAN QR CODE` and point the phone camera at the displayed code
+— it pairs like WhatsApp, with no typing: the LAN address, port, and security
+token are saved automatically. You can regenerate the token (which invalidates
+older scans) with the "Regenerate pairing token" button in the HUD. Manual
+entry is available only as a fallback.
 
 The Android app opens on a mobile HUD with live CPU, RAM, disk, GPU, model,
 memory, microphone, and reasoning-mode status. It also provides explicit

@@ -64,7 +64,7 @@ MANIFEST = [
         "description": "Run a shell/PowerShell command and return its output. Confirmation required.",
         "arguments": {
             "command": "the shell command to run",
-            "cwd": "optional working directory under the user profile",
+            "cwd": "optional working directory",
         },
     },
     {
@@ -73,7 +73,7 @@ MANIFEST = [
         "description": "Start a detached background subagent task (long shell command) without blocking the chat; returns a task id immediately and the Boss is notified when it finishes. Confirmation required.",
         "arguments": {
             "command": "the shell command to run in the background",
-            "cwd": "optional working directory under the user profile",
+            "cwd": "optional working directory",
             "label": "optional short label for the task",
         },
     },
@@ -170,13 +170,13 @@ MANIFEST = [
     {
         "name": "self_edit",
         "risk": "careful",
-        "description": "Read a file from the user's profile as the first step of the legacy self-correction flow. Confirmation required.",
+        "description": "Read a file anywhere on the machine as the first step of the legacy self-correction flow. Confirmation required.",
         "arguments": {"file_path": "absolute source file path"},
     },
     {
         "name": "apply_fix",
         "risk": "careful",
-        "description": "Apply an exact Python source replacement to a .py file under the user profile, with syntax validation and backup. Confirmation required.",
+        "description": "Apply an exact Python source replacement to a .py file anywhere on the machine, with syntax validation and backup. Protected system folders are still off-limits. Confirmation required.",
         "arguments": {
             "old_string": "exact existing source text",
             "new_string": "replacement source text",
@@ -269,8 +269,8 @@ MANIFEST = [
     },
     {
         "name": "inspect_image",
-        "risk": "careful",
-        "description": "Read a specific image file from a path and describe what is inside it. Confirmation required.",
+        "risk": "safe",
+        "description": "Read a specific image file from a path and describe what is inside it.",
         "arguments": {
             "path": "absolute path to an image file (jpg, png, webp, bmp)",
             "prompt": "optional question about the image contents",

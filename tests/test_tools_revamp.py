@@ -62,15 +62,15 @@ class ToolsRevampTests(unittest.TestCase):
         self.assertEqual("authorization_required", result.data["error"])
         agent._write_file.assert_not_called()
 
-    def test_general_file_read_is_scoped_to_user_profile(self):
+    def test_general_file_read_works_outside_user_profile(self):
         with tempfile.TemporaryDirectory() as home_dir, tempfile.TemporaryDirectory() as outside_dir:
             outside = Path(outside_dir) / "note.txt"
             outside.write_text("secret", encoding="utf-8")
             with patch("core.hands.tools.Path.home", return_value=Path(home_dir)):
                 result = TaskAgent()._read_file(str(outside))
 
-        self.assertFalse(result.ok)
-        self.assertIn("user profile", result.message)
+        self.assertTrue(result.ok)
+        self.assertIn("secret", result.message)
 
     def test_cloud_resolves_every_call_when_model_emits_more_than_four(self):
         calls = [
@@ -116,7 +116,7 @@ class ToolsRevampTests(unittest.TestCase):
     def test_inspect_image_tool_is_in_canonical_registry(self):
         self.assertIn("inspect_image", TOOL_REGISTRY)
         spec = TOOL_REGISTRY["inspect_image"]
-        self.assertIs(Risk.CAREFUL, spec.risk)
+        self.assertIs(Risk.SAFE, spec.risk)
         arg_names = {parameter.name for parameter in spec.parameters}
         self.assertIn("path", arg_names)
 
@@ -149,7 +149,7 @@ class ToolsRevampTests(unittest.TestCase):
         request = agent.parse("see the image at C:/Users/me/Downloads/photo.png")
         self.assertIsNotNone(request)
         self.assertEqual("inspect_image", request.name)
-        self.assertIs(Risk.CAREFUL, request.risk)
+        self.assertIs(Risk.SAFE, request.risk)
         self.assertTrue(request.args["path"].endswith("photo.png"))
 
 

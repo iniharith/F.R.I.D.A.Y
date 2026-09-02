@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.friday.assistant.ui.screens.ChatScreen
 import com.friday.assistant.ui.screens.DashboardScreen
+import com.friday.assistant.ui.screens.QrScannerScreen
 import com.friday.assistant.ui.screens.SettingsScreen
 import com.friday.assistant.ui.theme.FridayTheme
 import com.friday.assistant.viewmodel.FridayViewModel
@@ -71,13 +72,24 @@ class MainActivity : ComponentActivity() {
                             onOpenDashboard = { nav.navigate("dashboard") { popUpTo("dashboard") } },
                         )
                     }
-                    composable("settings") {
+composable("settings") {
                         SettingsScreen(
                             ui = ui,
                             onBack = { nav.popBackStack() },
                             onSave = vm::saveSettings,
                             onSetMode = vm::setMode,
                             onSetTuning = vm::setTuning,
+                            onScanQr = { nav.navigate("scan") },
+                        )
+                    }
+                    composable("scan") {
+                        QrScannerScreen(
+                            onBack = { nav.popBackStack() },
+                            onPaired = { host, port, token ->
+                                vm.saveSettings(host, port, token)
+                                vm.setPairingStatus("Paired with $host:$port. Connecting...")
+                                nav.navigate("dashboard") { launchSingleTop = true; popUpTo("dashboard") }
+                            },
                         )
                     }
                 }

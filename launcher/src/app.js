@@ -629,6 +629,20 @@ async function loadPairingInfo() {
   }
 }
 
+async function refreshPairingToken() {
+  const btn = document.getElementById('refreshPairingToken');
+  const qr = document.getElementById('pairingQr');
+  const token = document.getElementById('setPairingToken');
+  if (btn) { btn.disabled = true; btn.textContent = 'Regenerating...'; }
+  try {
+    const pairing = await ipcRenderer.invoke('refresh-pairing-token');
+    if (qr) qr.src = pairing.qrDataUrl;
+    if (token) token.value = pairing.token;
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Regenerate pairing token'; }
+  }
+}
+
 function applySettingsToUI(s) {
   const set = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.value = v; };
   const setChk = (id, v) => { const el = document.getElementById(id); if (el && v !== undefined) el.checked = v; };
@@ -757,6 +771,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('DOMContentLoaded', () => {
   const chatFrame = document.getElementById('chatFrame');
   if (chatFrame) initChatLogic(chatFrame);
+  document.getElementById('refreshPairingToken')?.addEventListener('click', refreshPairingToken);
   document.getElementById('setReasoningMode')?.addEventListener('change', (event) => {
     updateConfiguredModelDisplay({
       reasoningMode: event.target.value,

@@ -618,7 +618,7 @@ class TaskAgent:
             return self._request(
                 "inspect_image",
                 {"path": inspect.group(1).strip(" \"'.!?"), "prompt": "Describe what is inside this image accurately."},
-                Risk.CAREFUL,
+                Risk.SAFE,
                 "Inspect image",
                 f"Read and describe the image at {inspect.group(1).strip()}",
             )
@@ -1315,8 +1315,8 @@ class TaskAgent:
                 working_directory = Path(os.path.expandvars(path)).expanduser().resolve()
             except OSError:
                 return ToolResult(False, "That repository path is invalid.")
-            if not working_directory.is_dir() or not TaskAgent._is_local_path(working_directory):
-                return ToolResult(False, "The repository must be inside a folder under your user profile.")
+            if not working_directory.is_dir():
+                return ToolResult(False, "That repository path is not a folder.")
 
         git_path = shutil.which("git")
         if not git_path:
@@ -1428,8 +1428,6 @@ class TaskAgent:
             target = Path(os.path.expandvars(path)).expanduser().resolve()
         except Exception:
             return ToolResult(False, "That folder path is invalid.")
-        if not TaskAgent._is_local_path(target):
-            return ToolResult(False, "Folder access is limited to your user profile.")
         if not target.exists() or not target.is_dir():
             return ToolResult(False, f"That folder does not exist: {target}")
         try:
@@ -1467,8 +1465,6 @@ class TaskAgent:
     def _file_info(path: str) -> ToolResult:
         try:
             target = Path(os.path.expandvars(path)).expanduser().resolve()
-            if not TaskAgent._is_local_path(target):
-                return ToolResult(False, "Path access is limited to your user profile.")
             stat = target.stat()
         except FileNotFoundError:
             return ToolResult(False, f"That path does not exist: {path}")
@@ -1492,8 +1488,6 @@ class TaskAgent:
             directory = Path(os.path.expandvars(root)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "That search directory is invalid.")
-        if not TaskAgent._is_local_path(directory):
-            return ToolResult(False, "Text search is limited to your user profile.")
         if not directory.is_dir() or not query:
             return ToolResult(False, "Text search requires an existing directory and query.")
         suffix = file_suffix.strip().lower()
@@ -1547,7 +1541,7 @@ class TaskAgent:
             target = Path(os.path.expandvars(path)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "That file path is invalid.")
-        if not self._is_local_path(target) or self._is_protected(target) or not target.is_file():
+        if self._is_protected(target) or not target.is_file():
             return ToolResult(False, "That file is missing or protected.")
         if not old_string or old_string == new_string:
             return ToolResult(False, "The replacement must contain a real, non-empty change.")
@@ -1586,7 +1580,7 @@ class TaskAgent:
             target = Path(os.path.expandvars(path)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "That folder path is invalid.")
-        if not self._is_local_path(target) or self._is_protected(target):
+        if self._is_protected(target):
             return ToolResult(False, "That destination is protected.")
         if target.exists():
             return ToolResult(target.is_dir(), f"{target} already exists.")
@@ -1602,8 +1596,6 @@ class TaskAgent:
             dest = Path(os.path.expandvars(destination)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "The source or destination path is invalid.")
-        if not self._is_local_path(src) or not self._is_local_path(dest):
-            return ToolResult(False, "File operations are limited to your user profile.")
         if not src.exists():
             return ToolResult(False, f"The source does not exist: {src}")
         if self._is_protected(dest):
@@ -1630,8 +1622,6 @@ class TaskAgent:
             dest = Path(os.path.expandvars(destination)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "The source or destination path is invalid.")
-        if not self._is_local_path(src) or not self._is_local_path(dest):
-            return ToolResult(False, "File operations are limited to your user profile.")
         if not src.exists():
             return ToolResult(False, f"The source does not exist: {src}")
         if self._is_protected(src) or self._is_protected(dest):
@@ -1913,8 +1903,6 @@ class TaskAgent:
             target = Path(os.path.expandvars(path)).expanduser().resolve()
         except Exception:
             return ToolResult(False, "That file path isn't valid, Boss.")
-        if not self._is_local_path(target):
-            return ToolResult(False, "Image access is limited to your user profile, Boss.")
         if not target.exists() or not target.is_file():
             return ToolResult(False, f"I couldn't find that image at {path}, Boss.")
         if target.suffix.lower() not in self._IMAGE_SUFFIXES:
@@ -1948,8 +1936,6 @@ class TaskAgent:
                 return ToolResult(False, "Please specify which file needs fixing, Boss.")
 
             absolute_path = Path(os.path.expandvars(file_path)).expanduser().resolve()
-            if not self._is_local_path(absolute_path):
-                return ToolResult(False, "File access is limited to your user profile, Boss.")
             if not absolute_path.exists():
                 return ToolResult(False, f"File {file_path} not found, Boss.")
 
@@ -1970,8 +1956,8 @@ class TaskAgent:
             absolute_path = Path(os.path.expandvars(file_path)).expanduser().resolve()
         except OSError:
             return ToolResult(False, "That file path is invalid, Boss.")
-        if not self._is_local_path(absolute_path) or self._is_protected(absolute_path):
-            return ToolResult(False, "Fixes are limited to files inside your user profile, Boss.")
+        if self._is_protected(absolute_path):
+            return ToolResult(False, "That file is protected, Boss.")
         if absolute_path.suffix.lower() != ".py":
             return ToolResult(False, "Apply-fix only supports Python source files, Boss.")
         if not absolute_path.exists():
@@ -2121,12 +2107,6 @@ class TaskAgent:
         return False
 
     @staticmethod
-    def _is_local_path(target: Path) -> bool:
-        """General file tools stay inside the current user's filesystem tree."""
-        home = Path.home().resolve()
-        return target == home or home in target.parents
-
-    @staticmethod
     def _resolve_user_path(path: str) -> Path | None:
         """Expand a model-supplied path; bare relative names anchor at the profile."""
         try:
@@ -2147,8 +2127,8 @@ class TaskAgent:
                 working_directory = Path(os.path.expandvars(cwd)).expanduser().resolve()
             except OSError:
                 return ToolResult(False, "The command working directory is invalid.")
-            if not working_directory.is_dir() or not TaskAgent._is_local_path(working_directory):
-                return ToolResult(False, "Commands may only run inside a folder under your user profile.")
+            if not working_directory.is_dir():
+                return ToolResult(False, "The command working directory is invalid.")
         try:
             process = subprocess.run(
                 ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
@@ -2185,13 +2165,9 @@ class TaskAgent:
         working_directory = None
         if cwd:
             working_directory = self._resolve_user_path(cwd)
-            if (
-                working_directory is None
-                or not working_directory.is_dir()
-                or not self._is_local_path(working_directory)
-            ):
+            if working_directory is None or not working_directory.is_dir():
                 return ToolResult(
-                    False, "Background commands may only run inside a folder under your user profile, Boss."
+                    False, "Background commands need a valid working directory, Boss."
                 )
         try:
             task = self.background.start(
@@ -2237,8 +2213,6 @@ class TaskAgent:
         target = TaskAgent._resolve_user_path(path)
         if target is None:
             return ToolResult(False, "That file path isn't valid, Boss.")
-        if not self._is_local_path(target):
-            return ToolResult(False, "File access is limited to your user profile, Boss.")
         if not target.exists() or not target.is_file():
             return ToolResult(False, f"I couldn't find that file at {path}, Boss.")
         if target.stat().st_size > 1024 * 1024:
@@ -2270,7 +2244,7 @@ class TaskAgent:
                     False,
                     f"I refused to write that — the Python has a syntax error ({exc}), Boss.",
                 )
-        if not self._is_local_path(target) or self._is_protected(target):
+        if self._is_protected(target):
             return ToolResult(False, "That path is protected — I won't write there, Boss.")
         try:
             existed = target.exists()

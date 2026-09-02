@@ -123,10 +123,10 @@ HOW TO USE FRIDAY
   1. Connect the Windows computer and Android phone to the same trusted
      Wi-Fi network.
   2. Start FRIDAY on Windows.
-  3. Open CONFIG -> NETWORK in the Windows HUD.
-  4. Scan the QR code with the phone camera.
-  5. Tap the F.R.I.D.A.Y. link. The app saves the protected connection
-     details and connects automatically. Use Manual setup only if needed.
+3. Open CONFIG -> NETWORK in the Windows HUD.
+  4. In the app, tap SETTINGS -> SCAN QR CODE and point the camera at the QR.
+  5. It pairs like WhatsApp, saving the protected connection details and
+     connecting automatically. Use Manual setup only if needed.
   6. The mobile HUD shows system/model status and provides laptop mic
      mute/unmute, Local/OpenRouter mode and safe runtime tuning controls.
 
@@ -237,12 +237,14 @@ TASK EXECUTION
  a stable response ID and guides similar future replies. This does not
  retrain model weights or override tool confirmations and safety rules.
 
- Android pairing:
+Android pairing (WhatsApp-style):
   1. Start FRIDAY from the Windows HUD.
-  2. Open CONFIG -> NETWORK and scan the displayed QR code.
-  3. Tap the F.R.I.D.A.Y. link to save and connect automatically.
-  4. Keep both devices on the same trusted Wi-Fi network. Manual IP, port
-     and token entry remains available as a fallback.
+  2. Open CONFIG -> NETWORK to show the QR code.
+  3. In the app, tap SETTINGS -> SCAN QR CODE and point the camera at the code.
+     It pairs automatically with no typing.
+  4. Keep both devices on the same trusted Wi-Fi network.
+  5. Use "Regenerate pairing token" in the HUD to invalidate older scans.
+  6. Manual IP, port and token entry remain available as a fallback.
 
 --------------------------------------------------------------------
  LOCAL MODEL BUNDLE

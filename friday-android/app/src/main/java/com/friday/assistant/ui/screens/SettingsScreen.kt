@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,6 +34,7 @@ fun SettingsScreen(
     onSave: (String, String, String) -> Unit,
     onSetMode: (String) -> Unit,
     onSetTuning: (Double, Double, Int, Int) -> Unit,
+    onScanQr: () -> Unit,
 ) {
     var host by remember { mutableStateOf(ui.host) }
     var port by remember { mutableStateOf(ui.port) }
@@ -80,8 +82,18 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    Text("Scan the QR code shown in Windows CONFIG -> NETWORK", color = White, fontWeight = FontWeight.Bold)
-                    Text("Use your phone's camera. No in-app camera permission is needed.", color = Dim, fontSize = 12.sp)
+                    Text("Pair the app to your laptop", color = White, fontWeight = FontWeight.Bold)
+                    Text("Tap to open the in-app scanner, or use your phone's camera on the URI. Like WhatsApp, no typing is needed.", color = Dim, fontSize = 12.sp)
+                    Button(
+                        onClick = onScanQr,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = Cyan, contentColor = Bg),
+                        shape = CutCornerShape(topEnd = 12.dp, bottomStart = 8.dp),
+                    ) {
+                        Icon(Icons.Filled.CameraAlt, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("SCAN QR CODE", fontWeight = FontWeight.Bold)
+                    }
                     StatusRow(ui.connected)
                     Text("Paired host: ${ui.host}:${ui.port}", color = Cyan, fontSize = 12.sp, fontFamily = FontFamily.Monospace)
                     ui.pairingStatus?.let { Text(it, color = if (it.startsWith("Invalid")) Danger else Success, fontSize = 12.sp) }
